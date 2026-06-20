@@ -108,6 +108,11 @@
         .hidden {
             display: none;
         }
+        select {
+            width: 90%;
+            margin: 5%;
+            font-size: ${textSize}px;
+        }
         #modal {
             max-heigth: 70vh;
             overflow-y: auto;
@@ -135,6 +140,7 @@
 
             .btn {
                 display: block;
+                margin-bottom: 20px;
             }
         }
         table {
