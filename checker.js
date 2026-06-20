@@ -46,51 +46,103 @@
     // decide if you want to hide community posts completely. set to false if you want to see community posts. for some reason.
     const hideCommunityPosts = true;
 
-    // define groups of users here
-    // you can add more groups by following the schema below
-
-    // include "hidden" if you want to be able to hide posts from certain users
-    // hides only posts that were reblogged by a user or from a user on the list
-    // the original intent was to be able to hide your own posts, but you can also use this for other users you don't want to see
-    const definitions = {
-        "hidden": {
-            "colors": {
-                "backgroundColor": "black",
-                "textColor": "orange",
-                "contrastColor": "orange",
-            },
-            "urls": [
-            ]
-        },
-
-        "friends": {
-            "colors": {
-                "backgroundColor": "#264175",
-                "textColor": "white",
-                "contrastColor": "#0058FF",
-            },
-            "urls": [
-                "ratsetflummi",
-            ]
-        },
-
-        "enemies": {
-            "colors": {
-                "backgroundColor": "#61111B",
-                "textColor": "white",
-                "contrastColor": "#FF0524",
-            },
-            "urls": [
-            ]
-        },
-    }
-
     // everything below here is code. changing stuff in here might make the extension not work anymore
     // i can't stop you from poking around though
     // have fun and be yourself
     // and if it does break, just download a fresh version
 
     const textHeightModifier = 1.2;
+
+    let definitions;
+
+    try {
+        definitions = JSON.parse(getCookie("peopleCheckerData"));
+    }
+    catch {
+        definitions = {
+            "hidden": {
+                "colors": {
+                    "backgroundColor": "black",
+                    "textColor": "orange",
+                    "contrastColor": "orange",
+                },
+                "urls": [
+                ]
+            },
+
+            "friends": {
+                "colors": {
+                    "backgroundColor": "#264175",
+                    "textColor": "white",
+                    "contrastColor": "#0058FF",
+                },
+                "urls": [
+                ]
+            },
+
+            "enemies": {
+                "colors": {
+                    "backgroundColor": "#61111B",
+                    "textColor": "white",
+                    "contrastColor": "#FF0524",
+                },
+                "urls": [
+                ]
+            },
+        }
+        setCookie("peopleCheckerData", JSON.stringify(definitions));
+    }
+
+    const style = document.createElement('style');
+    style.textContent = `
+        .btn {
+            min-height: ${textSize * textHeightModifier}px;
+            margin: 0 10px;
+            border: ${borderStyle} ${expandButtonBorderColor} ${borderWidth}px;
+            border-radius: ${cornerRounding}px;
+            background-color: ${expandButtonBackgroundColor};
+            color: ${expandButtonTextColor};
+            padding: 10px;
+            font-size: ${textSize}px;
+        }
+        .hidden {
+            display: none;
+        }
+        #modal {
+            max-heigth: 70vh;
+            overflow-y: auto;
+            position: fixed;
+            top: 15vh;
+            left: 15vw;
+            height: 70vh;
+            width: 70vw;
+            color: ${commentColor};
+            background-color: ${commentBackground};
+            border: ${borderStyle} ${expandButtonBorderColor} 3px;
+
+            .row{
+                margin: 10px;
+                margin-bottom: 20px;
+                border: ${borderStyle} ${expandButtonBorderColor} ${borderWidth}px;
+                padding: 5px; 
+            }
+
+            .question{
+                text-align: center;
+                font-size: 30px;
+                margin: 10% 0;
+            }
+
+            .btn {
+                display: block;
+            }
+        }
+        table {
+            width: 90%;
+            margin: 0 5%;
+        }
+    `;
+    document.head.appendChild(style);
 
     setTimeout(() => {
         go();
@@ -165,7 +217,7 @@
 
     function go() {
         setButtons();
-        checkBlog();
+        checkBlogs();
         resizeText();
     }
 
@@ -198,10 +250,14 @@
         return returnButtons;
     }
 
-
-    function checkBlog() {
+    let addedEditButton = false;
+    function checkBlogs() {
         const postList = document.querySelectorAll("article");
         postList.forEach(post => {
+            if (!addedEditButton) {
+                addedEditButton = true;
+                addEditTypesButton(post);
+            }
             if (hideCommunityPosts) {
                 const dash = document.querySelector("[data-timeline-id]")?.querySelector("div");
                 if (dash?.children) {
@@ -241,7 +297,9 @@
             } else {
                 headerBlogName = header.children[1].children[0].children[0].children[1].querySelector("a");
             }
-            headerBlogName.style.display = "inline-block";
+            if (headerBlogName) {
+                headerBlogName.style.display = "inline-block";
+            }
 
             let tags;
             const footer = post.querySelector("footer");
@@ -272,6 +330,8 @@
             const postBody = header.nextElementSibling.querySelector("span").querySelector("div");
             if (!postBody) return;
             post.style.marginBottom = `${spaceBelowPosts}px`;
+
+            addEditBlogButton(header, postLink.href.split("tumblr.com/")[1].split("/")[0]);
 
             if (postBody.querySelector("._7Vla9") || postBody.querySelector(".WIYYp")) {
                 Array.from(postBody.children).forEach(comment => {
@@ -348,6 +408,7 @@
 
                 const commentLink = commentHeader.querySelector("a");
                 if (!commentLink) return;
+                addEditBlogButton(commentHeader, commentLink.href.split("tumblr.com/")[1].split("/")[0]);
 
                 Object.keys(definitions).forEach(type => {
                     definitions[type].urls.forEach(name => {
@@ -378,8 +439,6 @@
         expandElement.appendChild(expandButton);
         element.classList.add("expand");
         expandButton.innerText = "expand";
-        expandButton.style.fontSize = `${textSize}px`;
-        expandButton.style.minHeight = `${textSize * textHeightModifier}px`;
         expandButton.addEventListener("click", () => {
             if (element.style.display == "none") {
                 element.style.display = "";
@@ -389,12 +448,6 @@
                 expandButton.innerText = "expand";
             }
         });
-        expandButton.style.margin = "0 10px";
-        expandButton.style.border = `${borderStyle} ${expandButtonBorderColor} ${borderWidth}px`;
-        expandButton.style.borderRadius = `${cornerRounding}px`;
-        expandButton.style.backgroundColor = `${expandButtonBackgroundColor}`;
-        expandButton.style.color = `${expandButtonTextColor}`;
-        expandButton.style.padding = "10px";
         if (!buttonParent) {
             buttonParent = element.parentElement;
             if (30 > textSize) {
@@ -405,6 +458,280 @@
         } else {
             buttonParent.appendChild(expandButton);
         }
+    }
+
+    function openModal() {
+        let modal = document.querySelector("#modal");
+        if (!modal) {
+            modal = addEditModal();
+        }
+        modal.innerHTML = "";
+        modal.classList.remove("hidden");
+        return modal;
+    }
+
+    function closeModal() {
+        let modal = document.querySelector("#modal");
+        if (!modal) {
+            modal = addEditModal();
+        }
+        modal.innerHTML = "";
+        modal.classList.add("hidden");
+        return modal;
+    }
+
+    function addEditBlogButton(parent, name) {
+        if (parent.classList.contains("has-edit-button")) return;
+        parent.classList.add("has-edit-button");
+        const button = document.createElement("button");
+        button.innerText = "edit";
+        button.classList.add("btn");
+        parent.appendChild(button);
+        button.addEventListener("click", () => {
+            const modal = openModal();
+            // TODO
+            // add url to class / remove url from class button
+
+            const dropdown = document.createElement("select");
+            modal.appendChild(dropdown);
+
+            const addToTypeButton = document.createElement("button");
+            addToTypeButton.classList.add("btn");
+            modal.appendChild(addToTypeButton);
+
+            addToTypeButton.addEventListener("click", () => {
+                Object.values(definitions).forEach(type => {
+                    type.urls = type.urls.filter(url => url !== name);
+                });
+                definitions[dropdown.value].urls.push(name);
+                saveDefinitions();
+                closeModal();
+            });
+
+            dropdown.addEventListener("change", () => {
+                addToTypeButton.innerText = `add ${name} to ${dropdown.value}`;
+            });
+
+            Object.keys(definitions).forEach(type => {
+                const option = document.createElement("option");
+                option.value = type;
+                option.innerText = type;
+                dropdown.appendChild(option);
+                definitions[type].urls.forEach(url => {
+                    if (url === name) {
+                        option.selected = true;
+                    }
+                });
+            });
+
+            addToTypeButton.innerText = `add ${name} to ${dropdown.value}`;
+
+            const removeBlogDefinitionButton = document.createElement("button");
+            removeBlogDefinitionButton.classList.add("btn");
+            removeBlogDefinitionButton.innerText = `remove definition for ${name}`;
+            removeBlogDefinitionButton.addEventListener("click", () => {
+                Object.values(definitions).forEach(type => {
+                    type.urls = type.urls.filter(url => url !== name);
+                });
+                saveDefinitions();
+                closeModal();
+            });
+            modal.appendChild(removeBlogDefinitionButton);
+
+
+            const closeModalButton = document.createElement("button");
+            closeModalButton.innerText = "close";
+            closeModalButton.classList.add("btn");
+            closeModalButton.addEventListener("click", () => {
+                closeModal();
+            });
+            modal.appendChild(closeModalButton);
+        });
+    }
+    // TODO
+    // edit classes button
+    // urls and classes in cookies
+    // add / remove / rename class
+    // define class colors in cookie
+    // change colors buttons
+
+    function addEditModal() {
+        const modal = document.createElement("div");
+        modal.id = "modal";
+        document.querySelector("body").appendChild(modal);
+        closeModal();
+        modal.innerText = "modal";
+        return modal;
+    }
+
+    function openTypeModal() {
+        const modal = openModal();
+        Object.entries(definitions).forEach(([type, value]) => {
+            const row = document.createElement("div");
+            modal.appendChild(row);
+            const name = document.createElement("div");
+            const nameSpan = document.createElement("span");
+            name.innerText = type;
+            row.appendChild(nameSpan);
+            nameSpan.appendChild(name);
+
+            const table = document.createElement("table");
+            const nameRow = document.createElement("tr");
+            const colorRow = document.createElement("tr");
+            row.appendChild(table);
+            table.appendChild(nameRow);
+            table.appendChild(colorRow);
+
+            name.style.border = `${borderStyle} ${value.colors.contrastColor} ${borderWidth}px`;
+            name.style.backgroundColor = value.colors.backgroundColor;
+            name.style.color = value.colors.textColor;
+
+            row.classList.add("row");
+            row.id = type;
+
+            const urlDetails = document.createElement("details");
+            const urlSummary = document.createElement("summary");
+            urlDetails.appendChild(urlSummary);
+            urlSummary.innerText = "URLs";
+            const urlList = document.createElement("ul");
+            urlDetails.appendChild(urlList);
+            value.urls.forEach(url => {
+                const entry = document.createElement("li");
+                const link = document.createElement("a");
+                urlList.appendChild(entry);
+                entry.appendChild(link);
+                link.innerText = url;
+                link.href = `https://tumblr.com/${url}/`;
+            });
+            row.appendChild(urlDetails);
+
+            if (type !== "hidden") {
+                const deleteButton = document.createElement("button");
+                deleteButton.classList.add("btn");
+                name.appendChild(deleteButton);
+                deleteButton.innerText = "delete";
+                deleteButton.addEventListener("click", () => {
+                    openDeleteTypeModal(type);
+                })
+            }
+
+            Object.entries(value.colors).forEach(([colorName, value]) => {
+                const nameCell = document.createElement("td");
+                nameCell.innerText = `${colorName}:`;
+                nameRow.appendChild(nameCell);
+                const inputCell = document.createElement("td");
+                const input = document.createElement("input");
+                input.id = colorName;
+                input.classList.add("colorValue");
+                colorRow.classList.add("colorRow");
+                inputCell.appendChild(input);
+                colorRow.appendChild(inputCell);
+                input.type = "color";
+                input.value = value;
+                input.addEventListener("change", () => {
+                    if (colorName === "backgroundColor") {
+                        name.style.backgroundColor = input.value;
+                    }
+                    if (colorName === "textColor") {
+                        name.style.color = input.value;
+                    }
+                    if (colorName === "contrastColor") {
+                        name.style.border = `${borderStyle} ${input.value} ${borderWidth}px`;
+                    }
+                });
+            });
+            // { backgroundColor: "black", textColor: "orange", contrastColor: "orange" }
+        });
+
+        const saveColorsButton = document.createElement("button");
+        saveColorsButton.classList.add("btn");
+        modal.appendChild(saveColorsButton);
+        saveColorsButton.innerText = "save colors";
+        saveColorsButton.addEventListener("click", () => {
+            modal.querySelectorAll(".row").forEach(row => {
+                const typeName = row.id;
+                row.querySelectorAll(".colorValue").forEach(input => {
+                    definitions[typeName].colors[input.id] = input.value;
+                });
+            });
+            saveDefinitions();
+            openTypeModal();
+        });
+
+        const newTypeRow = document.createElement("div");
+        modal.appendChild(newTypeRow);
+        const input = document.createElement("input");
+        const addTypeButton = document.createElement("button");
+        newTypeRow.appendChild(input);
+        newTypeRow.appendChild(addTypeButton);
+        addTypeButton.innerText = "add new type";
+        addTypeButton.classList.add("btn");
+        addTypeButton.addEventListener("click", () => {
+            if (Object.keys(definitions).find(type => type === input.value)) {
+                openTypeModal();
+                return;
+            }
+            definitions[input.value] = {
+                "colors": { "backgroundColor": "black", "textColor": "white", "contrastColor": "grey" },
+                "urls": [],
+            }
+            saveDefinitions();
+            openTypeModal();
+        });
+
+        const closeModalButton = document.createElement("button");
+        closeModalButton.innerText = "close";
+        closeModalButton.classList.add("btn");
+        closeModalButton.addEventListener("click", () => {
+            closeModal();
+        });
+        modal.appendChild(closeModalButton);
+    }
+
+    function addEditTypesButton(post) {
+        const editButton = document.createElement("button");
+        editButton.classList.add("btn");
+        editButton.innerText = "Edit Types";
+        post.parentElement.prepend(editButton);
+
+        editButton.addEventListener("click", () => {
+            openTypeModal();
+        });
+
+    }
+
+    function openDeleteTypeModal(name) {
+        const modal = openModal();
+        const question = document.createElement("h2");
+        const deleteButton = document.createElement("button");
+        const cancelButton = document.createElement("button");
+        const row = document.createElement("div");
+        row.style.display = "flex";
+        row.style.justifyContent = "center";
+        modal.appendChild(question);
+        modal.appendChild(row);
+        question.classList.add("question");
+        row.appendChild(deleteButton);
+        row.appendChild(cancelButton);
+        deleteButton.classList.add("btn");
+        cancelButton.classList.add("btn");
+        question.innerText = `delete ${name}?`;
+        deleteButton.innerText = "delete";
+        cancelButton.innerText = "cancel";
+        cancelButton.addEventListener("click", () => {
+            openTypeModal();
+        });
+        deleteButton.addEventListener("click", () => {
+            const newDefinitions = {};
+            Object.keys(definitions).forEach(type => {
+                if (type != name) {
+                    newDefinitions[type] = definitions[type];
+                }
+            });
+            definitions = newDefinitions;
+            saveDefinitions();
+            openTypeModal();
+        });
     }
 
     function resizeText() {
@@ -418,6 +745,41 @@
             element.style.minHeight = `${textSize}px`;
             element.style.minWidth = `${textSize}px`;
         });
+    }
+
+    function setCookie(cname, cvalue) {
+        const d = new Date();
+        d.setTime(d.getTime() + (50 * 365 * 24 * 60 * 60 * 1000));
+        let expires = "expires=" + d.toUTCString();
+        document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+    }
+
+    function getCookie(cname) {
+        let name = cname + "=";
+        let decodedCookie = decodeURIComponent(document.cookie);
+        let ca = decodedCookie.split(';');
+        for (let i = 0; i < ca.length; i++) {
+            let c = ca[i];
+            while (c.charAt(0) == ' ') {
+                c = c.substring(1);
+            }
+            if (c.indexOf(name) == 0) {
+                return c.substring(name.length, c.length);
+            }
+        }
+        return "";
+    }
+
+    function deleteCookie(cname) {
+        const d = new Date();
+        d.setTime(d.getTime() + (50 * 365 * 24 * 60 * 60 * 1000));
+        let expires = "expires=" + d.toUTCString();
+        document.cookie = cname + "=delete;expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    }
+
+    function saveDefinitions() {
+        setCookie("peopleCheckerData", JSON.stringify(definitions));
+        go();
     }
 
 })();
