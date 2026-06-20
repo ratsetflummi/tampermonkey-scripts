@@ -256,12 +256,10 @@
         return returnButtons;
     }
 
-    let addedEditButton = false;
     function checkBlogs() {
         const postList = document.querySelectorAll("article");
         postList.forEach(post => {
-            if (!addedEditButton) {
-                addedEditButton = true;
+            if (!document.querySelector(".edit-button")) {
                 addEditTypesButton(post);
             }
             if (hideCommunityPosts) {
@@ -697,6 +695,7 @@
     function addEditTypesButton(post) {
         const editButton = document.createElement("button");
         editButton.classList.add("btn");
+        editButton.classList.add("edit-button");
         editButton.innerText = "Edit Types";
         post.parentElement.prepend(editButton);
 
