@@ -363,6 +363,13 @@
             }
 
 
+            definitions.hidden?.urls?.forEach(name => {
+                if (window.location.href.includes(name)) return;
+                if (postLink.href.includes(`/${name}/`)) {
+                    addExpandButton(postBody, header);
+                }
+            });
+
             const rebloggedFrom = header.querySelector("div").querySelector("div").querySelector("div");
             if (!rebloggedFrom) return;
             const headerInfo = rebloggedFrom.children[1].children[1];
@@ -381,12 +388,6 @@
                     headerInfo.querySelector(".ar_IZ").style.display = "none";
                 }
             }
-            definitions.hidden?.urls?.forEach(name => {
-                if (window.location.href.includes(name)) return;
-                if (postLink.href.includes(`/${name}/`)) {
-                    addExpandButton(postBody, header);
-                }
-            });
 
             let rebloggedFromHiddenUser = false;
             Object.keys(definitions).forEach(type => {
