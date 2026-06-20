@@ -142,6 +142,10 @@
                 display: block;
                 margin-bottom: 20px;
             }
+
+            td {
+                padding: 5px;
+            }
         }
         table {
             width: 90%;
@@ -602,8 +606,12 @@
             urlSummary.innerText = "URLs";
             const urlList = document.createElement("ul");
             urlDetails.appendChild(urlList);
+            urlDetails.style.marginTop = "15px";
+            urlSummary.style.border = `${borderStyle} ${expandButtonBorderColor} ${borderWidth}px`;
+            urlSummary.style.padding = "5px";
             value.urls.forEach(url => {
                 const entry = document.createElement("li");
+                entry.style.marginTop = "15px";
                 const link = document.createElement("a");
                 urlList.appendChild(entry);
                 entry.appendChild(link);
