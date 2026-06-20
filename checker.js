@@ -583,9 +583,11 @@
             const table = document.createElement("table");
             const nameRow = document.createElement("tr");
             const colorRow = document.createElement("tr");
+            const textInputRow = document.createElement("tr");
             row.appendChild(table);
             table.appendChild(nameRow);
             table.appendChild(colorRow);
+            table.appendChild(textInputRow);
 
             name.style.border = `${borderStyle} ${value.colors.contrastColor} ${borderWidth}px`;
             name.style.backgroundColor = value.colors.backgroundColor;
@@ -625,15 +627,24 @@
                 nameCell.innerText = `${colorName}:`;
                 nameRow.appendChild(nameCell);
                 const inputCell = document.createElement("td");
+                const textInputCell = document.createElement("td");
                 const input = document.createElement("input");
+                const textInput = document.createElement("input");
+                textInput.addEventListener("change", () => {
+                    input.value = textInput.value;
+                });
                 input.id = colorName;
                 input.classList.add("colorValue");
                 colorRow.classList.add("colorRow");
                 inputCell.appendChild(input);
                 colorRow.appendChild(inputCell);
+                textInputCell.appendChild(textInput);
+                textInputRow.appendChild(textInputCell);
                 input.type = "color";
                 input.value = value;
+                textInput.value = input.value;
                 input.addEventListener("change", () => {
+                    textInput.value = input.value;
                     if (colorName === "backgroundColor") {
                         name.style.backgroundColor = input.value;
                     }
