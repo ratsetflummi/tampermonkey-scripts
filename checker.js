@@ -632,6 +632,15 @@
                 const textInput = document.createElement("input");
                 textInput.addEventListener("change", () => {
                     input.value = textInput.value;
+                    if (colorName === "backgroundColor") {
+                        name.style.backgroundColor = input.value;
+                    }
+                    if (colorName === "textColor") {
+                        name.style.color = input.value;
+                    }
+                    if (colorName === "contrastColor") {
+                        name.style.border = `${borderStyle} ${input.value} ${borderWidth}px`;
+                    }
                 });
                 input.id = colorName;
                 input.classList.add("colorValue");
