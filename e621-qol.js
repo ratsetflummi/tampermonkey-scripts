@@ -52,6 +52,9 @@
                 const postSearch = document.querySelector(".search");
                 imageAndNav.after(postSearch);
                 postSearch.style.width = "100vw";
+            } else {
+                const navigation = document.querySelector(".navigation");
+                navigation.style.marginTop = "100px";
             }
             const blacklistUi = document.querySelector(".blacklist-ui");
             const posts = document.querySelector("#posts");
