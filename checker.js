@@ -70,6 +70,16 @@
                 ]
             },
 
+            "hideAsks": {
+                "colors": {
+                    "backgroundColor": "black",
+                    "textColor": "orange",
+                    "contrastColor": "orange",
+                },
+                "urls": [
+                ]
+            },
+
             "friends": {
                 "colors": {
                     "backgroundColor": "#264175",
@@ -90,7 +100,31 @@
                 ]
             },
         }
-        setCookie("peopleCheckerData", JSON.stringify(definitions));
+        saveDefinitions();
+    }
+    if (!definitions.hidden) {
+        definitions["hidden"] = {
+            "colors": {
+                "backgroundColor": "black",
+                "textColor": "orange",
+                "contrastColor": "orange",
+            },
+            "urls": [
+            ]
+        }
+        saveDefinitions();
+    }
+    if (!definitions.hideAsks) {
+        definitions["hideAsks"] = {
+            "colors": {
+                "backgroundColor": "black",
+                "textColor": "orange",
+                "contrastColor": "orange",
+            },
+            "urls": [
+            ]
+        }
+        saveDefinitions();
     }
 
     const style = document.createElement('style');
@@ -272,7 +306,7 @@
                     Array.from(dash.children).forEach(entry => {
                         const nextButton = Array.from(entry.querySelectorAll("button")).filter(button => button.ariaLabel == "Next");
                         if (!entry.querySelector("article") && nextButton.length == 0) {
-                            entry.style.display = "none";
+                            entry.classList.add("hidden");
                         }
                     });
                 }
@@ -283,13 +317,13 @@
                     }
                 });
                 if (isCommunity) {
-                    post.style.display = "none";
+                    post.classList.add("hidden");
                     return;
                 };
             }
             const header = post.querySelector("header");
             if (!header) {
-                post.style.display = "none";
+                post.classList.add("hidden");
                 return;
             }
             header.style.border = `${borderStyle} ${borderColor} ${borderWidth}px`;
@@ -335,7 +369,7 @@
                 });
             });
 
-            const postBody = header.nextElementSibling.querySelector("span").querySelector("div");
+            const postBody = post.querySelector(".LaNUG");
             if (!postBody) return;
             post.style.marginBottom = `${spaceBelowPosts}px`;
 
@@ -367,12 +401,20 @@
             }
 
 
-            definitions.hidden?.urls?.forEach(name => {
+            definitions.hidden.urls.forEach(name => {
                 if (window.location.href.includes(name)) return;
                 if (postLink.href.includes(`/${name}/`)) {
-                    addExpandButton(postBody, header);
+                    addExpandButton(postBody, header, " hidden blog");
                 }
             });
+
+            definitions.hideAsks?.urls.forEach(name => {
+                if (post.querySelectorAll(".XZFs6").length > 0) {
+                    if (postLink.href.includes(`/${name}/`)) {
+                        addExpandButton(postBody, header, " ask");
+                    }
+                }
+            })
 
             const rebloggedFrom = header.querySelector("div").querySelector("div").querySelector("div");
             if (!rebloggedFrom) return;
@@ -389,7 +431,7 @@
             if (headerInfo) {
                 headerInfo.querySelector("time").style.marginLeft = "5px";
                 if (headerInfo.querySelector(".ar_IZ")) {
-                    headerInfo.querySelector(".ar_IZ").style.display = "none";
+                    headerInfo.querySelector(".ar_IZ").classList.add("hidden");
                 }
             }
 
@@ -408,9 +450,11 @@
                 });
             });
 
-            const commentNumber = postBody.children.length;
+            const comments = Array.from(postBody.querySelectorAll(".u2tXn"));
+            const commentNumber = comments.length;
             let i = 0;
-            Array.from(postBody.children).forEach(comment => {
+            Array.from(comments).forEach(comment => {
+                console.log(comment);
                 i++;
                 const commentHeader = comment.querySelector("div");
                 if (!commentHeader) return;
@@ -440,33 +484,34 @@
         });
     }
 
-    function addExpandButton(element, buttonParent = null) {
+    function addExpandButton(element, buttonParent = null, explanation = "") {
         if (element.classList.contains("expand")) return;
-        element.style.display = "none";
+        element.classList.add("hidden");
         const expandElement = document.createElement("div");
         const expandButton = document.createElement("button");
         expandElement.appendChild(expandButton);
         element.classList.add("expand");
-        expandButton.innerText = "expand";
+        expandButton.classList.add("btn");
         expandButton.addEventListener("click", () => {
-            if (element.style.display == "none") {
-                element.style.display = "";
+            if (element.classList.contains("hidden")) {
+                element.classList.remove("hidden");
                 expandButton.innerText = "minimize";
             } else {
-                element.style.display = "none";
+                element.classList.add("hidden");
                 expandButton.innerText = "expand";
             }
         });
         if (!buttonParent) {
+            explanation = " comment";
             buttonParent = element.parentElement;
             if (30 > textSize) {
                 expandElement.style.minHeight = "30px";
             }
-            expandButton.style.padding = "10px 5px";
             buttonParent.insertBefore(expandElement, element);
         } else {
             buttonParent.appendChild(expandButton);
         }
+        expandButton.innerText = `expand${explanation}`;
     }
 
     function openModal() {
@@ -522,6 +567,7 @@
             });
 
             Object.keys(definitions).forEach(type => {
+                if (type === "hidden" && type === "hideAsks") return;
                 const option = document.createElement("option");
                 option.value = type;
                 option.innerText = type;
@@ -540,6 +586,7 @@
             removeBlogDefinitionButton.innerText = `remove definition for ${name}`;
             removeBlogDefinitionButton.addEventListener("click", () => {
                 Object.values(definitions).forEach(type => {
+                    if (type === "hidden" && type === "hideAsks") return;
                     type.urls = type.urls.filter(url => url !== name);
                 });
                 saveDefinitions();
@@ -547,6 +594,36 @@
             });
             modal.appendChild(removeBlogDefinitionButton);
 
+
+            const hideBlogButton = document.createElement("button");
+            hideBlogButton.classList.add("btn");
+            modal.appendChild(hideBlogButton);
+            hideBlogButton.addEventListener("click", () => {
+                if (definitions.hidden.urls.includes(name)) {
+                    hideBlogButton.innerText = "hide Blog";
+                    definitions.hidden.urls = definitions.hidden.urls.filter(url => url !== name);
+                } else {
+                    hideBlogButton.innerText = "unhide Blog";
+                    definitions.hidden.urls.push(name);
+                }
+                saveDefinitions();
+            });
+            hideBlogButton.innerText = definitions.hidden.urls.includes(name) ? "unhide Blog" : "hide Blog";
+
+            const hideAsksButton = document.createElement("button");
+            hideAsksButton.classList.add("btn");
+            modal.appendChild(hideAsksButton);
+            hideAsksButton.addEventListener("click", () => {
+                if (definitions.hideAsks.urls.includes(name)) {
+                    hideAsksButton.innerText = "hide Asks";
+                    definitions.hideAsks.urls = definitions.hideAsks.urls.filter(url => url !== name);
+                } else {
+                    hideAsksButton.innerText = "unhide Asks";
+                    definitions.hideAsks.urls.push(name);
+                }
+                saveDefinitions();
+            });
+            hideAsksButton.innerText = definitions.hideAsks.urls.includes(name) ? "unhide Asks" : "hide Asks";
 
             const closeModalButton = document.createElement("button");
             closeModalButton.innerText = "close";
@@ -620,7 +697,7 @@
             });
             row.appendChild(urlDetails);
 
-            if (type !== "hidden") {
+            if (type !== "hidden" && type !== "hideAsks") {
                 const deleteButton = document.createElement("button");
                 deleteButton.classList.add("btn");
                 name.appendChild(deleteButton);
