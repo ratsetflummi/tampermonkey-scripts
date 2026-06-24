@@ -35,7 +35,7 @@
             position: fixed !important;
             bottom: 0;
             left: 0;
-            z-index: 1;
+            z-index: 6;
             width: 100vw;
             margin-bottom: 0 !important;
         }
@@ -55,6 +55,10 @@
             if (imageAndNav) {
                 const postSearch = document.querySelector(".search");
                 imageAndNav.after(postSearch);
+                const topLinks = imageAndNav.querySelector("#nav-links-top");
+                imageAndNav.appendChild(topLinks);
+                const sequenceLinks = topLinks.querySelector(".search-seq-nav");
+                topLinks.appendChild(sequenceLinks);
             } else {
                 const navigation = document.querySelector(".navigation");
                 navigation.style.marginTop = "100px";
