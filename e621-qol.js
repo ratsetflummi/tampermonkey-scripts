@@ -47,9 +47,11 @@
             const imageAndNav = document.querySelector("#image-and-nav");
             if (imageAndNav) {
                 const topLinks = imageAndNav.querySelector("#nav-links-top");
+                imageAndNav.appendChild(topLinks);
 
-                const bottomLinks = topLinks.cloneNode(true);
-                imageAndNav.appendChild(bottomLinks);
+                const postSearch = document.querySelector(".search");
+                imageAndNav.after(postSearch);
+                postSearch.style.width = "100vw";
             }
             const blacklistUi = document.querySelector(".blacklist-ui");
             const posts = document.querySelector("#posts");
