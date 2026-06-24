@@ -24,13 +24,20 @@
 
     const style = document.createElement('style');
     style.textContent = `
-        .nav-link.prev, .nav-link.next {
+        .nav-link.prev, .nav-link.next, .nav-link.first, .nav-link.last {
             min-height: ${textSize * textHeightModifier}px;
-            margin: 0 10px;
             border: ${borderStyle} ${borderColor} ${borderWidth}px;
             border-radius: ${cornerRounding}px;
             padding: 10px;
             font-size: ${textSize}px;
+        }
+        #nav-links-top{
+            position: fixed !important;
+            bottom: 0;
+            left: 0;
+            z-index: 1;
+            width: 100vw;
+            margin-bottom: 0 !important;
         }
     `;
     document.head.appendChild(style);
@@ -46,9 +53,6 @@
 
             const imageAndNav = document.querySelector("#image-and-nav");
             if (imageAndNav) {
-                const topLinks = imageAndNav.querySelector("#nav-links-top");
-                imageAndNav.appendChild(topLinks);
-
                 const postSearch = document.querySelector(".search");
                 imageAndNav.after(postSearch);
             } else {
