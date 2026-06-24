@@ -51,7 +51,6 @@
 
                 const postSearch = document.querySelector(".search");
                 imageAndNav.after(postSearch);
-                postSearch.style.width = "100vw";
             } else {
                 const navigation = document.querySelector(".navigation");
                 navigation.style.marginTop = "100px";
