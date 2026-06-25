@@ -772,6 +772,7 @@
             const exportString = JSON.stringify(definitions).split(":{").join(":\n{").split("},").join("},\n\n").split(`,"`).join(`,\n"`);
             input.value = exportString;
         });
+        const closeModalButton = createButton(modal, "close", [], closeModal);
     }
 
     function addSettingsButtons(post) {
