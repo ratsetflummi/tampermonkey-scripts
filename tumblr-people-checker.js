@@ -102,30 +102,7 @@
         }
         saveDefinitions();
     }
-    if (!definitions.hidden) {
-        definitions["hidden"] = {
-            "colors": {
-                "backgroundColor": "black",
-                "textColor": "orange",
-                "contrastColor": "orange",
-            },
-            "urls": [
-            ]
-        }
-        saveDefinitions();
-    }
-    if (!definitions.hideAsks) {
-        definitions["hideAsks"] = {
-            "colors": {
-                "backgroundColor": "black",
-                "textColor": "orange",
-                "contrastColor": "orange",
-            },
-            "urls": [
-            ]
-        }
-        saveDefinitions();
-    }
+    addBaseDefinitions();
 
     const style = document.createElement('style');
     style.textContent = `
@@ -184,6 +161,10 @@
         table {
             width: 90%;
             margin: 0 5%;
+        }
+        .import-input{
+            width: 100%;
+            height: 60%;
         }
     `;
     document.head.appendChild(style);
@@ -298,7 +279,7 @@
         const postList = document.querySelectorAll("article");
         postList.forEach(post => {
             if (!document.querySelector(".edit-button")) {
-                addEditTypesButton(post);
+                addSettingsButtons(post);
             }
             if (hideCommunityPosts) {
                 const dash = document.querySelector("[data-timeline-id]")?.querySelector("div");
@@ -454,7 +435,6 @@
             const commentNumber = comments.length;
             let i = 0;
             Array.from(comments).forEach(comment => {
-                console.log(comment);
                 i++;
                 const commentHeader = comment.querySelector("div");
                 if (!commentHeader) return;
@@ -488,11 +468,7 @@
         if (element.classList.contains("expand")) return;
         element.classList.add("hidden");
         const expandElement = document.createElement("div");
-        const expandButton = document.createElement("button");
-        expandElement.appendChild(expandButton);
-        element.classList.add("expand");
-        expandButton.classList.add("btn");
-        expandButton.addEventListener("click", () => {
+        const expandButton = createButton(expandElement, "expand", [], () => {
             if (element.classList.contains("hidden")) {
                 element.classList.remove("hidden");
                 expandButton.innerText = "minimize";
@@ -501,6 +477,7 @@
                 expandButton.innerText = "expand";
             }
         });
+        element.classList.add("expand");
         if (!buttonParent) {
             explanation = " comment";
             buttonParent = element.parentElement;
@@ -537,11 +514,7 @@
     function addEditBlogButton(parent, name) {
         if (parent.classList.contains("has-edit-button")) return;
         parent.classList.add("has-edit-button");
-        const button = document.createElement("button");
-        button.innerText = "edit";
-        button.classList.add("btn");
-        parent.appendChild(button);
-        button.addEventListener("click", () => {
+        const button = createButton(parent, "edit", [], () => {
             const modal = openModal();
             // TODO
             // add url to class / remove url from class button
@@ -549,11 +522,7 @@
             const dropdown = document.createElement("select");
             modal.appendChild(dropdown);
 
-            const addToTypeButton = document.createElement("button");
-            addToTypeButton.classList.add("btn");
-            modal.appendChild(addToTypeButton);
-
-            addToTypeButton.addEventListener("click", () => {
+            const addToTypeButton = createButton(modal, "add to type", [], () => {
                 Object.values(definitions).forEach(type => {
                     type.urls = type.urls.filter(url => url !== name);
                 });
@@ -581,10 +550,7 @@
 
             addToTypeButton.innerText = `add ${name} to ${dropdown.value}`;
 
-            const removeBlogDefinitionButton = document.createElement("button");
-            removeBlogDefinitionButton.classList.add("btn");
-            removeBlogDefinitionButton.innerText = `remove definition for ${name}`;
-            removeBlogDefinitionButton.addEventListener("click", () => {
+            const removeBlogDefinitionButton = createButton(modal, `remove definition for ${name}`, classes, () => {
                 Object.values(definitions).forEach(type => {
                     if (type === "hidden" && type === "hideAsks") return;
                     type.urls = type.urls.filter(url => url !== name);
@@ -592,13 +558,9 @@
                 saveDefinitions();
                 closeModal();
             });
-            modal.appendChild(removeBlogDefinitionButton);
 
 
-            const hideBlogButton = document.createElement("button");
-            hideBlogButton.classList.add("btn");
-            modal.appendChild(hideBlogButton);
-            hideBlogButton.addEventListener("click", () => {
+            const hideBlogButton = createButton(modal, definitions.hidden.urls.includes(name) ? "unhide Blog" : "hide Blog", [], () => {
                 if (definitions.hidden.urls.includes(name)) {
                     hideBlogButton.innerText = "hide Blog";
                     definitions.hidden.urls = definitions.hidden.urls.filter(url => url !== name);
@@ -608,12 +570,8 @@
                 }
                 saveDefinitions();
             });
-            hideBlogButton.innerText = definitions.hidden.urls.includes(name) ? "unhide Blog" : "hide Blog";
 
-            const hideAsksButton = document.createElement("button");
-            hideAsksButton.classList.add("btn");
-            modal.appendChild(hideAsksButton);
-            hideAsksButton.addEventListener("click", () => {
+            const hideAsksButton = createButton(modal, definitions.hideAsks.urls.includes(name) ? "unhide Asks" : "hide Asks", [], () => {
                 if (definitions.hideAsks.urls.includes(name)) {
                     hideAsksButton.innerText = "hide Asks";
                     definitions.hideAsks.urls = definitions.hideAsks.urls.filter(url => url !== name);
@@ -623,15 +581,8 @@
                 }
                 saveDefinitions();
             });
-            hideAsksButton.innerText = definitions.hideAsks.urls.includes(name) ? "unhide Asks" : "hide Asks";
 
-            const closeModalButton = document.createElement("button");
-            closeModalButton.innerText = "close";
-            closeModalButton.classList.add("btn");
-            closeModalButton.addEventListener("click", () => {
-                closeModal();
-            });
-            modal.appendChild(closeModalButton);
+            const closeModalButton = createButton(modal, "close", [], closeModal);
         });
     }
     // TODO
@@ -698,11 +649,7 @@
             row.appendChild(urlDetails);
 
             if (type !== "hidden" && type !== "hideAsks") {
-                const deleteButton = document.createElement("button");
-                deleteButton.classList.add("btn");
-                name.appendChild(deleteButton);
-                deleteButton.innerText = "delete";
-                deleteButton.addEventListener("click", () => {
+                const deleteButton = createButton(name, "delete", [], () => {
                     openDeleteTypeModal(type);
                 })
             }
@@ -753,11 +700,7 @@
             // { backgroundColor: "black", textColor: "orange", contrastColor: "orange" }
         });
 
-        const saveColorsButton = document.createElement("button");
-        saveColorsButton.classList.add("btn");
-        modal.appendChild(saveColorsButton);
-        saveColorsButton.innerText = "save colors";
-        saveColorsButton.addEventListener("click", () => {
+        const saveColorsButton = createButton(modal, "save colors", [], () => {
             modal.querySelectorAll(".row").forEach(row => {
                 const typeName = row.id;
                 row.querySelectorAll(".colorValue").forEach(input => {
@@ -771,12 +714,8 @@
         const newTypeRow = document.createElement("div");
         modal.appendChild(newTypeRow);
         const input = document.createElement("input");
-        const addTypeButton = document.createElement("button");
         newTypeRow.appendChild(input);
-        newTypeRow.appendChild(addTypeButton);
-        addTypeButton.innerText = "add new type";
-        addTypeButton.classList.add("btn");
-        addTypeButton.addEventListener("click", () => {
+        const addTypeButton = createButton(newTypeRow, "add new type", [], () => {
             if (Object.keys(definitions).find(type => type === input.value)) {
                 openTypeModal();
                 return;
@@ -789,26 +728,57 @@
             openTypeModal();
         });
 
-        const closeModalButton = document.createElement("button");
-        closeModalButton.innerText = "close";
-        closeModalButton.classList.add("btn");
-        closeModalButton.addEventListener("click", () => {
+        const closeModalButton = createButton(modal, "close", [], () => {
             closeModal();
         });
-        modal.appendChild(closeModalButton);
     }
 
-    function addEditTypesButton(post) {
-        const editButton = document.createElement("button");
-        editButton.classList.add("btn");
-        editButton.classList.add("edit-button");
-        editButton.innerText = "Edit Types";
-        post.parentElement.prepend(editButton);
-
-        editButton.addEventListener("click", () => {
+    function addEditTypesButton(parent) {
+        const button = createButton(parent, "Edit Types", ["edit-button"], () => {
             openTypeModal();
         });
+    }
 
+    function addExportDataButton(parent) {
+        const button = createButton(parent, "Import/Export", [], () => {
+            openExportModal();
+        });
+    }
+
+    function openExportModal() {
+        const modal = openModal();
+        const input = document.createElement("textarea");
+        input.classList.add("import-input");
+        modal.appendChild(input);
+        const importButton = createButton(modal, "Import", [], () => {
+            const inputText = input.value;
+            try {
+                const newDefinitions = JSON.parse(inputText);
+                if (isValidData(newDefinitions)) {
+                    definitions = newDefinitions;
+                    addBaseDefinitions();
+                    saveDefinitions();
+                    closeModal();
+                    go();
+                } else {
+                    console.log("invalid data");
+                    console.log(newDefinitions);
+                }
+            } catch {
+                console.log(`can't parse ${inputText}`);
+            }
+        });
+        const exportButton = createButton(modal, "Export", [], () => {
+            const exportString = JSON.stringify(definitions).split(":{").join(":\n{").split("},").join("},\n\n").split(`,"`).join(`,\n"`);
+            input.value = exportString;
+        });
+    }
+
+    function addSettingsButtons(post) {
+        const settingsBox = document.createElement("div");
+        post.parentElement.prepend(settingsBox);
+        addEditTypesButton(settingsBox);
+        addExportDataButton(settingsBox);
     }
 
     function openDeleteTypeModal(name) {
@@ -856,6 +826,87 @@
             element.style.minHeight = `${textSize}px`;
             element.style.minWidth = `${textSize}px`;
         });
+    }
+
+    function createButton(parent, innerText, classes, clickFunction) {
+        const button = document.createElement("button");
+        button.classList.add("btn");
+        classes.forEach(clss => {
+            button.classList.add(`${clss}`);
+        })
+        button.innerText = innerText;
+        parent.appendChild(button);
+
+        button.addEventListener("click", () => {
+            clickFunction();
+        });
+        return button;
+    }
+
+    function isValidData(obj) {
+        if (typeof obj !== "object" || obj === null || Array.isArray(obj)) {
+            return false;
+        }
+
+        for (const value of Object.values(obj)) {
+            // Each top-level value must be an object
+            if (typeof value !== "object" || value === null) {
+                return false;
+            }
+
+            const { colors, urls } = value;
+
+            // colors is required
+            if (
+                typeof colors !== "object" ||
+                colors === null ||
+                typeof colors.backgroundColor !== "string" ||
+                typeof colors.textColor !== "string" ||
+                typeof colors.contrastColor !== "string" ||
+                colors.backgroundColor === "" ||
+                colors.textColor === "" ||
+                colors.contrastColor === ""
+            ) {
+                return false;
+            }
+
+            // urls must be an array of strings (can be empty)
+            if (
+                !Array.isArray(urls) ||
+                !urls.every(url => typeof url === "string")
+            ) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    function addBaseDefinitions() {
+        if (!definitions.hidden) {
+            definitions["hidden"] = {
+                "colors": {
+                    "backgroundColor": "black",
+                    "textColor": "orange",
+                    "contrastColor": "orange",
+                },
+                "urls": [
+                ]
+            }
+            saveDefinitions();
+        }
+        if (!definitions.hideAsks) {
+            definitions["hideAsks"] = {
+                "colors": {
+                    "backgroundColor": "black",
+                    "textColor": "orange",
+                    "contrastColor": "orange",
+                },
+                "urls": [
+                ]
+            }
+            saveDefinitions();
+        }
     }
 
     function setCookie(cname, cvalue) {
