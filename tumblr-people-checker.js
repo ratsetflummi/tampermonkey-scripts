@@ -163,7 +163,7 @@
                 margin: 10px;
                 margin-bottom: 20px;
                 border: ${borderStyle} ${expandButtonBorderColor} ${borderWidth}px;
-                padding: 5px; 
+                padding: 5px;
             }
 
             .question{
@@ -369,7 +369,7 @@
                 });
             });
 
-            const postBody = post.querySelector(".LaNUG");
+            const postBody = post.querySelector(".LaNUG") || post.querySelector(".Qb2zX");
             if (!postBody) return;
             post.style.marginBottom = `${spaceBelowPosts}px`;
 
