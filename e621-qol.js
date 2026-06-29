@@ -31,13 +31,13 @@
             padding: 10px;
             font-size: ${textSize}px;
         }
-        #nav-links-top{
-            position: fixed !important;
-            bottom: 0;
-            left: 0;
-            z-index: 6;
-            width: 100vw;
-            margin-bottom: 0 !important;
+        // #nav-links-top{
+        //     position: fixed !important;
+        //     bottom: 0;
+        //     left: 0;
+        //     z-index: 6;
+        //     width: 100vw;
+        //     margin-bottom: 0 !important;
         }
     `;
     document.head.appendChild(style);
