@@ -59,10 +59,9 @@
                 imageAndNav.appendChild(topLinks);
                 const sequenceLinks = topLinks.querySelector(".search-seq-nav");
                 topLinks.appendChild(sequenceLinks);
-            } else {
-                const navigation = document.querySelector(".navigation");
-                navigation.style.marginTop = "100px";
             }
+            const navigation = document.querySelector(".navigation");
+            navigation.style.marginTop = "30vh";
             const blacklistUi = document.querySelector(".blacklist-ui");
             const posts = document.querySelector("#posts");
             posts?.prepend(blacklistUi);
