@@ -449,15 +449,15 @@
                         if (commentLink.href.includes(`/${name}/`)) {
                             comment.style.backgroundColor = definitions[type].colors.backgroundColor;
                             comment.style.color = definitions[type].colors.textColor;
-                        } else {
-                            if (window.location.href.includes(name)) return;
-                            if (commentLink.href.includes("tumblr.com/")) {
-                                const commentBlogName = commentLink.href.split("tumblr.com/")[1].split("/")[0];
-                                if ((rebloggedFromHiddenUser && !(i === commentNumber && postBlogName === commentBlogName)) || definitions.hidden.urls.includes(commentBlogName)) {
-                                    addExpandButton(commentBody, commentHeader);
-                                }
+                        }
+                        if (window.location.href.includes(name)) return;
+                        if (commentLink.href.includes("tumblr.com/")) {
+                            const commentBlogName = commentLink.href.split("tumblr.com/")[1].split("/")[0];
+                            if ((rebloggedFromHiddenUser && !(i === commentNumber && postBlogName === commentBlogName)) || definitions.hidden.urls.includes(commentBlogName)) {
+                                addExpandButton(commentBody, commentHeader);
                             }
                         }
+
                     });
                 });
 
