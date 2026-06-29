@@ -441,6 +441,7 @@
 
                 const commentLink = commentHeader.querySelector("a");
                 if (!commentLink) return;
+                const commentBody = comment.children[1];
                 addEditBlogButton(commentHeader, commentLink.href.split("tumblr.com/")[1].split("/")[0]);
 
                 Object.keys(definitions).forEach(type => {
@@ -452,8 +453,8 @@
                             if (window.location.href.includes(name)) return;
                             if (commentLink.href.includes("tumblr.com/")) {
                                 const commentBlogName = commentLink.href.split("tumblr.com/")[1].split("/")[0];
-                                if (rebloggedFromHiddenUser && !(i === commentNumber && postBlogName === commentBlogName)) {
-                                    addExpandButton(comment);
+                                if ((rebloggedFromHiddenUser && !(i === commentNumber && postBlogName === commentBlogName)) || definitions.hidden.urls.includes(commentBlogName)) {
+                                    addExpandButton(commentBody, commentHeader);
                                 }
                             }
                         }
@@ -516,8 +517,6 @@
         parent.classList.add("has-edit-button");
         const button = createButton(parent, "edit", [], () => {
             const modal = openModal();
-            // TODO
-            // add url to class / remove url from class button
 
             const dropdown = document.createElement("select");
             modal.appendChild(dropdown);
@@ -536,7 +535,7 @@
             });
 
             Object.keys(definitions).forEach(type => {
-                if (type === "hidden" && type === "hideAsks") return;
+                if (type === "hidden" || type === "hideAsks") return;
                 const option = document.createElement("option");
                 option.value = type;
                 option.innerText = type;
@@ -550,9 +549,9 @@
 
             addToTypeButton.innerText = `add ${name} to ${dropdown.value}`;
 
-            const removeBlogDefinitionButton = createButton(modal, `remove definition for ${name}`, classes, () => {
+            const removeBlogDefinitionButton = createButton(modal, `remove definition for ${name}`, [], () => {
                 Object.values(definitions).forEach(type => {
-                    if (type === "hidden" && type === "hideAsks") return;
+                    if (type === "hidden" || type === "hideAsks") return;
                     type.urls = type.urls.filter(url => url !== name);
                 });
                 saveDefinitions();
