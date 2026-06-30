@@ -31,7 +31,7 @@
 
     // define how large text should be, and which elements should be resized. uses html element tags
     const textSize = 20;
-    const elementsToResize = ["a", "p", "li", "span", "time"];
+    const elementsToResize = ["a", "p", "li", "span", "time", "blockquote"];
 
     // define how long the extension waits before it tries to load the style in milliseconds
     // if the styles take too long to load in then try lowering these
