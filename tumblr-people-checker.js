@@ -11,55 +11,63 @@
 
 (function () {
     'use strict';
-    // you can change these to change the style of the website. standard colour settings are optimized for the vampire colour scheme
-    const commentBackground = "#292929";
-    const commentColor = "white";
-    const tagColor = "#efefef";
-    const borderWidth = 1;
-    const borderColor = "black";
-    const borderStyle = "solid"; // solid, dotted, dashed, etc. look up css border styles for all options
-    const expandButtonTextColor = "white";
-    const expandButtonBackgroundColor = "grey";
-    const expandButtonBorderColor = "black";
 
-    // define how round the corners of posts and comments are
-    const cornerRounding = 15;
-
-    //define how much space there is between comments and between posts
-    const spaceBelowComments = 15;
-    const spaceBelowPosts = 30;
-
-    // define how large text should be, and which elements should be resized. uses html element tags
-    const textSize = 20;
-    const elementsToResize = ["a", "p", "li", "span", "time", "blockquote"];
-
-    // define how long the extension waits before it tries to load the style in milliseconds
-    // if the styles take too long to load in then try lowering these
-    // if the styles don't load in at all then these need to be higher
-    // timeout is the time it waits after you click on the Previous and Next button
-    // followinTimeout is how long it waits to load after you click on the following page.
     const timeout = 3000;
     const viewPostTimeout = 500;
     const followingTimeout = 10000;
     const reloadTimeout = 4000;
-
-    // decide if you want to hide community posts completely. set to false if you want to see community posts. for some reason.
-    const hideCommunityPosts = true;
-
+    const elementsToResize = ['a', 'p', 'li', 'span', 'time', 'blockquote']
     // everything below here is code. changing stuff in here might make the extension not work anymore
     // i can't stop you from poking around though
     // have fun and be yourself
     // and if it does break, just download a fresh version
 
-    const textHeightModifier = 1.2;
 
-    let definitions;
-
+    let definitions = {};
+    let blogDefinitions;
+    let formattingDefinitions;
     try {
         definitions = JSON.parse(getCookie("peopleCheckerData"));
+
+        blogDefinitions = definitions["blogDefinitions"];
+        formattingDefinitions = definitions["formattingDefinitions"];
+        if (!blogDefinitions) {
+            addDefaultBlogDefinitions();
+        }
+        if (!formattingDefinitions) {
+            addDefaultFormattingDefinitions();
+        }
     }
     catch {
-        definitions = {
+        addDefaultBlogDefinitions();
+        addDefaultFormattingDefinitions();
+    }
+    addBaseDefinitions();
+
+    function addDefaultFormattingDefinitions() {
+        formattingDefinitions = {
+            "hideCommunityPosts": true,
+            "commentBackground": "#292929",
+            "commentColor": "#ffffff",
+            "tagColor": "#efefef",
+            "borderWidth": 1,
+            "borderColor": "#000000",
+            "expandButtonTextColor": "#ffffff",
+            "expandButtonBackgroundColor": "#353535",
+            "expandButtonBorderColor": "#000000",
+            "borderStyle": "solid",
+            "cornerRounding": 15,
+            "spaceBelowComments": 15,
+            "spaceBelowPosts": 30,
+            "textSize": 20,
+            "textHeightModifier": 1.2,
+
+        };
+        definitions.formattingDefinitions = formattingDefinitions;
+        saveDefinitions();
+    }
+    function addDefaultBlogDefinitions() {
+        blogDefinitions = {
             "hidden": {
                 "colors": {
                     "backgroundColor": "black",
@@ -100,31 +108,31 @@
                 ]
             },
         }
+        definitions.blogDefinitions = blogDefinitions;
         saveDefinitions();
     }
-    addBaseDefinitions();
-
     const style = document.createElement('style');
     style.textContent = `
         .btn {
-            min-height: ${textSize * textHeightModifier}px;
+            min-height: ${formattingDefinitions.textSize * formattingDefinitions.textHeightModifier}px;
             margin: 0 10px;
-            border: ${borderStyle} ${expandButtonBorderColor} ${borderWidth}px;
-            border-radius: ${cornerRounding}px;
-            background-color: ${expandButtonBackgroundColor};
-            color: ${expandButtonTextColor};
+            border: ${formattingDefinitions.borderStyle} ${formattingDefinitions.expandButtonBorderColor} ${formattingDefinitions.borderWidth}px;
+            border-radius: ${formattingDefinitions.cornerRounding}px;
+            background-color: ${formattingDefinitions.expandButtonBackgroundColor};
+            color: ${formattingDefinitions.expandButtonTextColor};
             padding: 10px;
-            font-size: ${textSize}px;
-        }
-        .hidden {
-            display: none;
+            font-size: ${formattingDefinitions.textSize}px;
         }
         select {
             width: 90%;
             margin: 5%;
-            font-size: ${textSize}px;
+            font-size: ${formattingDefinitions.textSize}px;
+        }
+        #modal, #background{
+            z-index: 101;
         }
         #modal {
+            text-align: center;
             max-heigth: 70vh;
             overflow-y: auto;
             position: fixed;
@@ -132,14 +140,16 @@
             left: 15vw;
             height: 70vh;
             width: 70vw;
-            color: ${commentColor};
-            background-color: ${commentBackground};
-            border: ${borderStyle} ${expandButtonBorderColor} 3px;
-
+            color: ${formattingDefinitions.commentColor};
+            background-color: ${formattingDefinitions.commentBackground};
+            border: ${formattingDefinitions.borderStyle} ${formattingDefinitions.expandButtonBorderColor} 3px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-evenly;
             .row{
                 margin: 10px;
                 margin-bottom: 20px;
-                border: ${borderStyle} ${expandButtonBorderColor} ${borderWidth}px;
+                border: ${formattingDefinitions.borderStyle} ${formattingDefinitions.expandButtonBorderColor} ${formattingDefinitions.borderWidth}px;
                 padding: 5px;
             }
 
@@ -150,6 +160,7 @@
             }
 
             .btn {
+                min-height: 50px;
                 display: block;
                 margin-bottom: 20px;
             }
@@ -158,13 +169,22 @@
                 padding: 5px;
             }
         }
+        #background{
+            height: 100vh;
+            width: 100vw;
+            position: fixed;
+            top: 0;
+        }
         table {
             width: 90%;
             margin: 0 5%;
         }
         .import-input{
-            width: 100%;
+            width: 99%;
             height: 60%;
+        }
+        .hidden, #modal.hidden {
+            display: none;
         }
     `;
     document.head.appendChild(style);
@@ -173,9 +193,11 @@
         go();
     }, viewPostTimeout);
 
+
     setTimeout(() => {
         go();
     }, reloadTimeout);
+
 
     document.addEventListener("keyup", () => {
         setTimeout(() => {
@@ -186,6 +208,7 @@
             go();
         }, reloadTimeout);
     });
+
 
     const followingButtons = document.querySelectorAll("[href='/dashboard/following']");
     followingButtons.forEach(button => {
@@ -241,9 +264,13 @@
     })
 
     function go() {
+
         setButtons();
+
         checkBlogs();
+
         resizeText();
+
     }
 
     function setButtons() {
@@ -260,6 +287,7 @@
             });
             button.classList.add("linked");
         });
+        addOpenSettingsButton();
     }
 
     function getButtons() {
@@ -279,9 +307,9 @@
         const postList = document.querySelectorAll("article");
         postList.forEach(post => {
             if (!document.querySelector(".edit-button")) {
-                addSettingsButtons(post);
+                addOpenSettingsButton();
             }
-            if (hideCommunityPosts) {
+            if (formattingDefinitions.hideCommunityPosts) {
                 const dash = document.querySelector("[data-timeline-id]")?.querySelector("div");
                 if (dash?.children) {
                     Array.from(dash.children).forEach(entry => {
@@ -307,10 +335,10 @@
                 post.classList.add("hidden");
                 return;
             }
-            header.style.border = `${borderStyle} ${borderColor} ${borderWidth}px`;
-            header.style.borderRadius = `${cornerRounding}px`;
-            header.style.marginBottom = `${spaceBelowComments}px`;
-            header.style.backgroundColor = commentBackground;
+            header.style.border = `${formattingDefinitions.borderStyle} ${formattingDefinitions.borderColor} ${formattingDefinitions.borderWidth}px`;
+            header.style.borderRadius = `${formattingDefinitions.cornerRounding}px`;
+            header.style.marginBottom = `${formattingDefinitions.spaceBelowComments}px`;
+            header.style.backgroundColor = formattingDefinitions.commentBackground;
 
             const postLink = header.querySelector("a");
             const postBlogName = postLink.href.split("tumblr.com/")[1].split("/")[0];
@@ -331,33 +359,35 @@
             }
 
             if (tags) {
-                tags.style.border = `${borderStyle} ${borderColor} ${borderWidth}px`;
-                tags.style.borderRadius = `${cornerRounding}px`;
-                tags.style.backgroundColor = commentBackground;
+                tags.style.border = `${formattingDefinitions.borderStyle} ${formattingDefinitions.borderColor} ${formattingDefinitions.borderWidth}px`;
+                tags.style.borderRadius = `${formattingDefinitions.cornerRounding}px`;
+                tags.style.backgroundColor = formattingDefinitions.commentBackground;
                 tags.style.paddingBottom = "15px";
 
                 tags.querySelectorAll("a").forEach(tag => {
-                    tag.style.color = tagColor;
+                    tag.style.color = formattingDefinitions.tagColor;
                 })
             }
 
-            Object.keys(definitions).forEach(type => {
-                definitions[type].urls.forEach(name => {
+            Object.keys(blogDefinitions).forEach(type => {
+                blogDefinitions[type].urls.forEach(name => {
                     if (postLink.href.includes(`/${name}/`)) {
-                        header.style.backgroundColor = definitions[type].colors.backgroundColor;
-                        header.style.color = definitions[type].colors.textColor;
+                        header.style.backgroundColor = blogDefinitions[type].colors.backgroundColor;
+                        header.style.color = blogDefinitions[type].colors.textColor;
                     }
                 });
             });
 
             const postBody = post.querySelector(".LaNUG") || post.querySelector(".Qb2zX");
             if (!postBody) return;
-            post.style.marginBottom = `${spaceBelowPosts}px`;
+            post.style.marginBottom = `${formattingDefinitions.spaceBelowPosts}px`;
 
             addEditBlogButton(header, postLink.href.split("tumblr.com/")[1].split("/")[0]);
 
+            const asks = Array.from(postBody.querySelectorAll(".XZFs6"));
+            const comments = Array.from(postBody.querySelectorAll(".u2tXn")).concat(asks);
             if (postBody.querySelector("._7Vla9") || postBody.querySelector(".WIYYp")) {
-                Array.from(postBody.children).forEach(comment => {
+                comments.forEach(comment => {
                     const link = comment.querySelectorAll("a")[2];
                     const time = comment.querySelector("time");
                     [link, time].forEach(element => {
@@ -365,31 +395,31 @@
                             element.style.display = "inline-block";
                         }
                     });
-                    comment.style.borderRadius = `${cornerRounding}px`;
-                    comment.style.border = `${borderStyle} ${borderColor} ${borderWidth}px`;
-                    comment.style.backgroundColor = commentBackground;
-                    comment.style.color = commentColor;
-                    comment.style.marginBottom = `${spaceBelowComments}px`;
+                    comment.style.borderRadius = `${formattingDefinitions.cornerRounding}px`;
+                    comment.style.border = `${formattingDefinitions.borderStyle} ${formattingDefinitions.borderColor} ${formattingDefinitions.borderWidth}px`;
+                    comment.style.backgroundColor = formattingDefinitions.commentBackground;
+                    comment.style.color = formattingDefinitions.commentColor;
+                    comment.style.marginBottom = `${formattingDefinitions.spaceBelowComments}px`;
                     comment.style.padding = "10px";
                 });
             } else {
-                postBody.style.borderRadius = `${cornerRounding}px`;
-                postBody.style.border = `${borderStyle} ${borderColor} ${borderWidth}px`;
-                postBody.style.backgroundColor = commentBackground;
-                postBody.style.color = commentColor;
-                postBody.style.marginBottom = `${spaceBelowComments}px`;
+                postBody.style.borderRadius = `${formattingDefinitions.cornerRounding}px`;
+                postBody.style.border = `${formattingDefinitions.borderStyle} ${formattingDefinitions.borderColor} ${formattingDefinitions.borderWidth}px`;
+                postBody.style.backgroundColor = formattingDefinitions.commentBackground;
+                postBody.style.color = formattingDefinitions.commentColor;
+                postBody.style.marginBottom = `${formattingDefinitions.spaceBelowComments}px`;
                 postBody.style.padding = "10px";
             }
 
 
-            definitions.hidden.urls.forEach(name => {
+            blogDefinitions.hidden.urls.forEach(name => {
                 if (window.location.href.includes(name)) return;
                 if (postLink.href.includes(`/${name}/`)) {
                     addExpandButton(postBody, header, " hidden blog");
                 }
             });
 
-            definitions.hideAsks?.urls.forEach(name => {
+            blogDefinitions.hideAsks?.urls.forEach(name => {
                 if (post.querySelectorAll(".XZFs6").length > 0) {
                     if (postLink.href.includes(`/${name}/`)) {
                         addExpandButton(postBody, header, " ask");
@@ -400,8 +430,8 @@
             const rebloggedFrom = header.querySelector("div").querySelector("div").querySelector("div");
             if (!rebloggedFrom) return;
             const headerInfo = rebloggedFrom.children[1].children[1];
-            headerInfo.style.fontSize = `${textSize}px`;
-            headerInfo.style.minHeight = `${textSize * textHeightModifier}px`;
+            headerInfo.style.fontSize = `${formattingDefinitions.textSize}px`;
+            headerInfo.style.minHeight = `${formattingDefinitions.textSize * formattingDefinitions.textHeightModifier}px`;
             const headerInfoText = headerInfo.children[0];
             if (headerInfoText) {
                 headerInfoText.style.display = "inline-block";
@@ -417,21 +447,20 @@
             }
 
             let rebloggedFromHiddenUser = false;
-            Object.keys(definitions).forEach(type => {
-                definitions[type].urls.forEach(name => {
+            Object.keys(blogDefinitions).forEach(type => {
+                blogDefinitions[type].urls.forEach(name => {
                     if (headerInfo.classList.contains("checked")) return;
                     if (rebloggedFrom.ariaLabel.includes(`reblogged from ${name}`)) {
                         if (type === "hidden") {
                             const commentElement = document.createElement("span");
                             rebloggedFromHiddenUser = true;
                         }
-                        headerInfo.style.color = definitions[type].colors.contrastColor;
+                        headerInfo.style.color = blogDefinitions[type].colors.contrastColor;
                         headerInfo.classList.add("checked");
                     }
                 });
             });
 
-            const comments = Array.from(postBody.querySelectorAll(".u2tXn"));
             const commentNumber = comments.length;
             let i = 0;
             Array.from(comments).forEach(comment => {
@@ -444,16 +473,16 @@
                 const commentBody = comment.children[1];
                 addEditBlogButton(commentHeader, commentLink.href.split("tumblr.com/")[1].split("/")[0]);
 
-                Object.keys(definitions).forEach(type => {
-                    definitions[type].urls.forEach(name => {
+                Object.keys(blogDefinitions).forEach(type => {
+                    blogDefinitions[type].urls.forEach(name => {
                         if (commentLink.href.includes(`/${name}/`)) {
-                            comment.style.backgroundColor = definitions[type].colors.backgroundColor;
-                            comment.style.color = definitions[type].colors.textColor;
+                            comment.style.backgroundColor = blogDefinitions[type].colors.backgroundColor;
+                            comment.style.color = blogDefinitions[type].colors.textColor;
                         }
                         if (window.location.href.includes(name)) return;
                         if (commentLink.href.includes("tumblr.com/")) {
                             const commentBlogName = commentLink.href.split("tumblr.com/")[1].split("/")[0];
-                            if ((rebloggedFromHiddenUser && !(i === commentNumber && postBlogName === commentBlogName)) || definitions.hidden.urls.includes(commentBlogName)) {
+                            if ((rebloggedFromHiddenUser && !(i === commentNumber && postBlogName === commentBlogName)) || blogDefinitions.hidden.urls.includes(commentBlogName)) {
                                 addExpandButton(commentBody, commentHeader);
                             }
                         }
@@ -482,7 +511,7 @@
         if (!buttonParent) {
             explanation = " comment";
             buttonParent = element.parentElement;
-            if (30 > textSize) {
+            if (30 > formattingDefinitions.textSize) {
                 expandElement.style.minHeight = "30px";
             }
             buttonParent.insertBefore(expandElement, element);
@@ -497,6 +526,8 @@
         if (!modal) {
             modal = addEditModal();
         }
+        const background = document.querySelector("#background");
+        background.classList.remove("hidden");
         modal.innerHTML = "";
         modal.classList.remove("hidden");
         return modal;
@@ -507,8 +538,10 @@
         if (!modal) {
             modal = addEditModal();
         }
+        const background = document.querySelector("#background");
         modal.innerHTML = "";
         modal.classList.add("hidden");
+        background.classList.add("hidden");
         return modal;
     }
 
@@ -522,11 +555,11 @@
             modal.appendChild(dropdown);
 
             const addToTypeButton = createButton(modal, "add to type", [], () => {
-                Object.values(definitions).forEach(type => {
+                Object.values(blogDefinitions).forEach(type => {
                     type.urls = type.urls.filter(url => url !== name);
                 });
-                definitions[dropdown.value].urls.push(name);
-                saveDefinitions();
+                blogDefinitions[dropdown.value].urls.push(name);
+                saveAndGo();
                 closeModal();
             });
 
@@ -534,13 +567,13 @@
                 addToTypeButton.innerText = `add ${name} to ${dropdown.value}`;
             });
 
-            Object.keys(definitions).forEach(type => {
+            Object.keys(blogDefinitions).forEach(type => {
                 if (type === "hidden" || type === "hideAsks") return;
                 const option = document.createElement("option");
                 option.value = type;
                 option.innerText = type;
                 dropdown.appendChild(option);
-                definitions[type].urls.forEach(url => {
+                blogDefinitions[type].urls.forEach(url => {
                     if (url === name) {
                         option.selected = true;
                     }
@@ -550,38 +583,38 @@
             addToTypeButton.innerText = `add ${name} to ${dropdown.value}`;
 
             const removeBlogDefinitionButton = createButton(modal, `remove definition for ${name}`, [], () => {
-                Object.values(definitions).forEach(type => {
+                Object.values(blogDefinitions).forEach(type => {
                     if (type === "hidden" || type === "hideAsks") return;
                     type.urls = type.urls.filter(url => url !== name);
                 });
-                saveDefinitions();
+                saveAndGo();
                 closeModal();
             });
 
 
-            const hideBlogButton = createButton(modal, definitions.hidden.urls.includes(name) ? "unhide Blog" : "hide Blog", [], () => {
-                if (definitions.hidden.urls.includes(name)) {
+            const hideBlogButton = createButton(modal, blogDefinitions.hidden.urls.includes(name) ? "unhide Blog" : "hide Blog", [], () => {
+                if (blogDefinitions.hidden.urls.includes(name)) {
                     hideBlogButton.innerText = "hide Blog";
-                    definitions.hidden.urls = definitions.hidden.urls.filter(url => url !== name);
+                    blogDefinitions.hidden.urls = blogDefinitions.hidden.urls.filter(url => url !== name);
                 } else {
                     hideBlogButton.innerText = "unhide Blog";
-                    definitions.hidden.urls.push(name);
+                    blogDefinitions.hidden.urls.push(name);
                 }
-                saveDefinitions();
+                saveAndGo();
             });
 
-            const hideAsksButton = createButton(modal, definitions.hideAsks.urls.includes(name) ? "unhide Asks" : "hide Asks", [], () => {
-                if (definitions.hideAsks.urls.includes(name)) {
+            const hideAsksButton = createButton(modal, blogDefinitions.hideAsks.urls.includes(name) ? "unhide Asks" : "hide Asks", [], () => {
+                if (blogDefinitions.hideAsks.urls.includes(name)) {
                     hideAsksButton.innerText = "hide Asks";
-                    definitions.hideAsks.urls = definitions.hideAsks.urls.filter(url => url !== name);
+                    blogDefinitions.hideAsks.urls = blogDefinitions.hideAsks.urls.filter(url => url !== name);
                 } else {
                     hideAsksButton.innerText = "unhide Asks";
-                    definitions.hideAsks.urls.push(name);
+                    blogDefinitions.hideAsks.urls.push(name);
                 }
-                saveDefinitions();
+                saveAndGo();
             });
 
-            const closeModalButton = createButton(modal, "close", [], closeModal);
+            addCloseButton(modal);
         });
     }
     // TODO
@@ -594,15 +627,82 @@
     function addEditModal() {
         const modal = document.createElement("div");
         modal.id = "modal";
+        const background = document.createElement("div");
+        background.id = "background";
+        background.addEventListener("click", closeModal);
+        document.querySelector("body").appendChild(background);
         document.querySelector("body").appendChild(modal);
         closeModal();
-        modal.innerText = "modal";
         return modal;
+    }
+
+    function openFormattingModal() {
+        const modal = openModal();
+        const table = document.createElement("table");
+        modal.appendChild(table);
+        Object.entries(formattingDefinitions).forEach(([type, value]) => {
+            const row = document.createElement("tr");
+            const th = document.createElement("th");
+            const td = document.createElement("td");
+            table.appendChild(row);
+            row.appendChild(th);
+            row.appendChild(td);
+
+            const input = document.createElement("input");
+            input.id = type;
+            td.appendChild(input);
+            switch (typeof (value)) {
+                case "boolean":
+                    input.type = "checkbox";
+                    input.checked = value;
+                    break;
+                case "string":
+                    if (value.startsWith("#"))
+                        input.type = "color";
+                    else
+                        input.type = "text";
+                    break;
+                case "number":
+                    input.type = "number";
+                    break;
+                default:
+                // code block
+            }
+            input.value = value;
+
+            th.innerText = type;
+        });
+
+        const saveButton = createButton(modal, "save", [], () => {
+            Object.keys(formattingDefinitions).forEach(type => {
+                const input = table.querySelector(`#${type}`);
+                switch (input.type) {
+                    case "checkbox":
+                        formattingDefinitions[type] = input.checked;
+                        break;
+                    case "text":
+                        formattingDefinitions[type] = input.value;
+                        break;
+                    case "color":
+                        formattingDefinitions[type] = input.value;
+                        break;
+                    case "number":
+                        formattingDefinitions[type] = Number(input.value);
+                        break;
+                    default:
+                    // code block
+                }
+            });
+            saveAndGo();
+            closeModal();
+        });
+        addCloseButton(modal);
+
     }
 
     function openTypeModal() {
         const modal = openModal();
-        Object.entries(definitions).forEach(([type, value]) => {
+        Object.entries(blogDefinitions).forEach(([type, value]) => {
             const row = document.createElement("div");
             modal.appendChild(row);
             const name = document.createElement("div");
@@ -620,7 +720,7 @@
             table.appendChild(colorRow);
             table.appendChild(textInputRow);
 
-            name.style.border = `${borderStyle} ${value.colors.contrastColor} ${borderWidth}px`;
+            name.style.border = `${formattingDefinitions.borderStyle} ${value.colors.contrastColor} ${formattingDefinitions.borderWidth}px`;
             name.style.backgroundColor = value.colors.backgroundColor;
             name.style.color = value.colors.textColor;
 
@@ -634,7 +734,7 @@
             const urlList = document.createElement("ul");
             urlDetails.appendChild(urlList);
             urlDetails.style.marginTop = "15px";
-            urlSummary.style.border = `${borderStyle} ${expandButtonBorderColor} ${borderWidth}px`;
+            urlSummary.style.border = `${formattingDefinitions.borderStyle} ${formattingDefinitions.expandButtonBorderColor} ${formattingDefinitions.borderWidth}px`;
             urlSummary.style.padding = "5px";
             value.urls.forEach(url => {
                 const entry = document.createElement("li");
@@ -670,7 +770,7 @@
                         name.style.color = input.value;
                     }
                     if (colorName === "contrastColor") {
-                        name.style.border = `${borderStyle} ${input.value} ${borderWidth}px`;
+                        name.style.border = `${formattingDefinitions.borderStyle} ${input.value} ${formattingDefinitions.borderWidth}px`;
                     }
                 });
                 input.id = colorName;
@@ -692,7 +792,7 @@
                         name.style.color = input.value;
                     }
                     if (colorName === "contrastColor") {
-                        name.style.border = `${borderStyle} ${input.value} ${borderWidth}px`;
+                        name.style.border = `${formattingDefinitions.borderStyle} ${input.value} ${formattingDefinitions.borderWidth}px`;
                     }
                 });
             });
@@ -703,39 +803,38 @@
             modal.querySelectorAll(".row").forEach(row => {
                 const typeName = row.id;
                 row.querySelectorAll(".colorValue").forEach(input => {
-                    definitions[typeName].colors[input.id] = input.value;
+                    blogDefinitions[typeName].colors[input.id] = input.value;
                 });
             });
-            saveDefinitions();
+            saveAndGo();
             openTypeModal();
         });
 
-        const newTypeRow = document.createElement("div");
-        modal.appendChild(newTypeRow);
         const input = document.createElement("input");
-        newTypeRow.appendChild(input);
-        const addTypeButton = createButton(newTypeRow, "add new type", [], () => {
-            if (Object.keys(definitions).find(type => type === input.value)) {
+        modal.appendChild(input);
+        input.placeholder = "new type name...";
+        const addTypeButton = createButton(modal, "add new type", [], () => {
+            if (Object.keys(blogDefinitions).find(type => type === input.value)) {
                 openTypeModal();
                 return;
             }
-            definitions[input.value] = {
+            blogDefinitions[input.value] = {
                 "colors": { "backgroundColor": "black", "textColor": "white", "contrastColor": "grey" },
                 "urls": [],
             }
-            saveDefinitions();
+            saveAndGo();
             openTypeModal();
         });
 
-        const closeModalButton = createButton(modal, "close", [], () => {
-            closeModal();
-        });
+        addCloseButton(modal);
     }
 
     function addEditTypesButton(parent) {
-        const button = createButton(parent, "Edit Types", ["edit-button"], () => {
-            openTypeModal();
-        });
+        const button = createButton(parent, "Edit Types", [], openTypeModal);
+    }
+
+    function addEditFormattingButton(parent) {
+        const button = createButton(parent, "Edit Formatting", [], openFormattingModal);
     }
 
     function addExportDataButton(parent) {
@@ -753,12 +852,12 @@
             const inputText = input.value;
             try {
                 const newDefinitions = JSON.parse(inputText);
-                if (isValidData(newDefinitions)) {
-                    definitions = newDefinitions;
+                if (isValidData(newDefinitions.blogDefinitions)) {
+                    formattingDefinitions = newDefinitions.formattingDefinitions;
+                    blogDefinitions = newDefinitions.blogDefinitions;
                     addBaseDefinitions();
-                    saveDefinitions();
+                    saveAndGo();
                     closeModal();
-                    go();
                 } else {
                     console.log("invalid data");
                     console.log(newDefinitions);
@@ -771,14 +870,28 @@
             const exportString = JSON.stringify(definitions).split(":{").join(":\n{").split("},").join("},\n\n").split(`,"`).join(`,\n"`);
             input.value = exportString;
         });
-        const closeModalButton = createButton(modal, "close", [], closeModal);
+        addCloseButton(modal);
     }
 
-    function addSettingsButtons(post) {
-        const settingsBox = document.createElement("div");
-        post.parentElement.prepend(settingsBox);
-        addEditTypesButton(settingsBox);
-        addExportDataButton(settingsBox);
+    function addOpenSettingsButton() {
+        const settingsList = document.querySelector(".gM9qK");
+        if (!settingsList || settingsList?.classList.contains("addedCheckerSettings")) return;
+        settingsList?.classList.add("addedCheckerSettings");
+        const entry = document.createElement("li");
+        settingsList.appendChild(entry);
+        const button = createButton(entry, "Checker Settings", ["edit-button"], openSettingsModal);
+    }
+
+    function openSettingsModal() {
+        const modal = openModal();
+        addEditTypesButton(modal);
+        addEditFormattingButton(modal);
+        addExportDataButton(modal);
+        addCloseButton(modal);
+    }
+
+    function addCloseButton(parent) {
+        return createButton(parent, "close", [], closeModal);
     }
 
     function openDeleteTypeModal(name) {
@@ -804,13 +917,13 @@
         });
         deleteButton.addEventListener("click", () => {
             const newDefinitions = {};
-            Object.keys(definitions).forEach(type => {
+            Object.keys(blogDefinitions).forEach(type => {
                 if (type != name) {
-                    newDefinitions[type] = definitions[type];
+                    newDefinitions[type] = blogDefinitions[type];
                 }
             });
-            definitions = newDefinitions;
-            saveDefinitions();
+            blogDefinitions = newDefinitions;
+            saveAndGo();
             openTypeModal();
         });
     }
@@ -818,13 +931,13 @@
     function resizeText() {
         elementsToResize.forEach(type => {
             document.querySelectorAll(type).forEach(element => {
-                element.style.fontSize = `${textSize}px`;
-                element.style.minHeight = `${textSize * textHeightModifier}px`;
+                element.style.fontSize = `${formattingDefinitions.textSize}px`;
+                element.style.minHeight = `${formattingDefinitions.textSize * formattingDefinitions.textHeightModifier}px`;
             });
         });
         document.querySelectorAll("svg").forEach(element => {
-            element.style.minHeight = `${textSize}px`;
-            element.style.minWidth = `${textSize}px`;
+            element.style.minHeight = `${formattingDefinitions.textSize}px`;
+            element.style.minWidth = `${formattingDefinitions.textSize}px`;
         });
     }
 
@@ -883,8 +996,8 @@
     }
 
     function addBaseDefinitions() {
-        if (!definitions.hidden) {
-            definitions["hidden"] = {
+        if (!blogDefinitions.hidden) {
+            blogDefinitions["hidden"] = {
                 "colors": {
                     "backgroundColor": "black",
                     "textColor": "orange",
@@ -895,8 +1008,8 @@
             }
             saveDefinitions();
         }
-        if (!definitions.hideAsks) {
-            definitions["hideAsks"] = {
+        if (!blogDefinitions.hideAsks) {
+            blogDefinitions["hideAsks"] = {
                 "colors": {
                     "backgroundColor": "black",
                     "textColor": "orange",
@@ -940,7 +1053,13 @@
     }
 
     function saveDefinitions() {
+        definitions.formattingDefinitions = formattingDefinitions;
+        definitions.blogDefinitions = blogDefinitions;
         setCookie("peopleCheckerData", JSON.stringify(definitions));
+    }
+
+    function saveAndGo() {
+        saveDefinitions();
         go();
     }
 
