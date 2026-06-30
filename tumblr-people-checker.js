@@ -534,6 +534,7 @@
     }
 
     function closeModal() {
+        document.querySelector("#glass-container")?.classList.remove("hidden");
         let modal = document.querySelector("#modal");
         if (!modal) {
             modal = addEditModal();
@@ -883,6 +884,7 @@
     }
 
     function openSettingsModal() {
+        document.querySelector("#glass-container")?.classList.add("hidden");
         const modal = openModal();
         addEditTypesButton(modal);
         addEditFormattingButton(modal);
