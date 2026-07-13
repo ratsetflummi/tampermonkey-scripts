@@ -50,11 +50,14 @@
         title.querySelector("span").style.fontSize = "30px";
         const image = item.querySelector(".ytLockupViewModelContentImage");
         image.style.maxWidth = "60px";
-        const touchButton = item.querySelector(".ytLockupViewModelHost.ytLockupViewModelVertical.ytLockupViewModelRichGridLegacyMargin.ytLockupViewModelFlexNone");
-        touchButton.style.width = "50%";
+        const touchButton = item.querySelector(".ytLockupViewModelHost.ytLockupViewModelVertical.ytLockupViewModelRichGridLegacyMargin.ytLockupViewModelFlexNone") || item.querySelector(".ytLockupMetadataViewModelHost.ytLockupMetadataViewModelHorizontal.ytLockupMetadataViewModelCompact.ytLockupMetadataViewModelHasMenuButton");
+
         const contextMenuButton = item.querySelector(".ytLockupMetadataViewModelMenuButton");
-        contextMenuButton.style.position = "absolute";
-        contextMenuButton.style.right = "-250px";
+
+
+        if (touchButton) {
+            touchButton.parentElement.appendChild(contextMenuButton);
+        }
         // const meta = item.querySelector(".ytLockupViewModelMetadata");
         // const channels = [];
         // let stop = false;
