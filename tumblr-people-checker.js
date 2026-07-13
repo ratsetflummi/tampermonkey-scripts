@@ -26,10 +26,12 @@
     let definitions = {};
     let blogDefinitions;
     let formattingDefinitions;
+    let tagDefinitions;
     try {
         definitions = JSON.parse(getCookie("peopleCheckerData"));
 
         blogDefinitions = definitions["blogDefinitions"];
+        tagDefinitions = definitions["tagDefinitions"];
         formattingDefinitions = definitions["formattingDefinitions"];
         if (!blogDefinitions) {
             addDefaultBlogDefinitions();
@@ -37,10 +39,14 @@
         if (!formattingDefinitions) {
             addDefaultFormattingDefinitions();
         }
+        if (!tagDefinitions) {
+            addDefaultTagDefinitions();
+        }
     }
     catch {
         addDefaultBlogDefinitions();
         addDefaultFormattingDefinitions();
+        addDefaultTagDefinitions();
     }
     addBaseDefinitions();
 
@@ -67,6 +73,7 @@
         saveDefinitions();
     }
     function addDefaultBlogDefinitions() {
+        4.
         blogDefinitions = {
             "hidden": {
                 "colors": {
@@ -111,6 +118,14 @@
         definitions.blogDefinitions = blogDefinitions;
         saveDefinitions();
     }
+
+    function addDefaultTagDefinitions() {
+        4.
+        tagDefinitions = [];
+        definitions.tagDefinitions = tagDefinitions;
+        saveDefinitions();
+    }
+
     const style = document.createElement('style');
     style.textContent = `
         .btn {
@@ -340,6 +355,11 @@
             header.style.marginBottom = `${formattingDefinitions.spaceBelowComments}px`;
             header.style.backgroundColor = formattingDefinitions.commentBackground;
 
+            const tag = post.querySelector(".q05ND");
+            if (tag) {
+                addHideTagButton(post, tag);
+            }
+
             const postLink = header.querySelector("a");
             const postBlogName = postLink.href.split("tumblr.com/")[1].split("/")[0];
             let headerBlogName;
@@ -358,6 +378,7 @@
                 tags = footer.parentElement.children[0];
             }
 
+
             if (tags) {
                 tags.style.border = `${formattingDefinitions.borderStyle} ${formattingDefinitions.borderColor} ${formattingDefinitions.borderWidth}px`;
                 tags.style.borderRadius = `${formattingDefinitions.cornerRounding}px`;
@@ -366,6 +387,12 @@
 
                 tags.querySelectorAll("a").forEach(tag => {
                     tag.style.color = formattingDefinitions.tagColor;
+                    tagDefinitions.forEach(tagDefinition => {
+                        if (tag.innerText.includes(tagDefinition)) {
+                            post.classList.add("hidden");
+                        }
+                    });
+
                 })
             }
 
@@ -701,6 +728,51 @@
 
     }
 
+
+    function openTagModal() {
+        const modal = openModal();
+        const table = document.createElement("table");
+
+
+        const input = document.createElement("input");
+        modal.appendChild(input);
+        const button = createButton(modal, "add hidden tag", [], () => {
+            if (input.value != "" && input.value.length < 141 && !tagDefinitions.includes(input.value)) {
+                tagDefinitions.push(input.value);
+                input.value = "";
+                saveAndGo();
+                closeModal();
+                openTagModal();
+            }
+        });
+
+        modal.appendChild(table);
+
+        tagDefinitions.forEach(tag => {
+            const row = document.createElement("tr");
+            const th = document.createElement("th");
+            const td = document.createElement("td");
+            table.appendChild(row);
+            row.appendChild(th);
+            row.appendChild(td);
+
+            const button = createButton(td, "remove", [], () => {
+                tagDefinitions = tagDefinitions.filter(definition => definition !== tag);
+                row.style.display = "none";
+            });
+
+            th.innerText = tag;
+        });
+
+
+        const saveButton = createButton(modal, "save", [], () => {
+            saveAndGo();
+            closeModal();
+        });
+        addCloseButton(modal);
+
+    }
+
     function openTypeModal() {
         const modal = openModal();
         Object.entries(blogDefinitions).forEach(([type, value]) => {
@@ -834,6 +906,10 @@
         const button = createButton(parent, "Edit Types", [], openTypeModal);
     }
 
+    function addEditTagsButton(parent) {
+        const button = createButton(parent, "Edit Tags", [], openTagModal);
+    }
+
     function addEditFormattingButton(parent) {
         const button = createButton(parent, "Edit Formatting", [], openFormattingModal);
     }
@@ -848,6 +924,7 @@
         const modal = openModal();
         const input = document.createElement("textarea");
         input.classList.add("import-input");
+
         modal.appendChild(input);
         const importButton = createButton(modal, "Import", [], () => {
             const inputText = input.value;
@@ -856,6 +933,7 @@
                 if (isValidData(newDefinitions.blogDefinitions)) {
                     formattingDefinitions = newDefinitions.formattingDefinitions;
                     blogDefinitions = newDefinitions.blogDefinitions;
+                    tagDefinitions = newDefinitions.tagDefinitions;
                     addBaseDefinitions();
                     saveAndGo();
                     closeModal();
@@ -887,6 +965,7 @@
         document.querySelector("#glass-container")?.classList.add("hidden");
         const modal = openModal();
         addEditTypesButton(modal);
+        addEditTagsButton(modal);
         addEditFormattingButton(modal);
         addExportDataButton(modal);
         addCloseButton(modal);
@@ -1024,6 +1103,23 @@
         }
     }
 
+    function addHideTagButton(post, tag) {
+        const tagText = tag.innerText.replaceAll("#", "");
+        if (tagDefinitions.includes(tagText)) {
+            post.classList.add("hidden");
+            return;
+        } else {
+            post.classList.remove("hidden");
+        }
+        if (post.classList.contains("tagged")) { return; }
+        post.classList.add("tagged");
+        const button = createButton(tag.parentElement, "add to hidden tags", [], () => {
+            tagDefinitions.push(tagText);
+            saveAndGo();
+        });
+        button.style.marginTop = "20px";
+    }
+
     function setCookie(cname, cvalue) {
         const d = new Date();
         d.setTime(d.getTime() + (50 * 365 * 24 * 60 * 60 * 1000));
@@ -1057,6 +1153,7 @@
     function saveDefinitions() {
         definitions.formattingDefinitions = formattingDefinitions;
         definitions.blogDefinitions = blogDefinitions;
+        definitions.tagDefinitions = tagDefinitions;
         setCookie("peopleCheckerData", JSON.stringify(definitions));
     }
 
