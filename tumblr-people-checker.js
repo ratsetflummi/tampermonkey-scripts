@@ -73,7 +73,6 @@
         saveDefinitions();
     }
     function addDefaultBlogDefinitions() {
-        4.
         blogDefinitions = {
             "hidden": {
                 "colors": {
@@ -120,7 +119,6 @@
     }
 
     function addDefaultTagDefinitions() {
-        4.
         tagDefinitions = [];
         definitions.tagDefinitions = tagDefinitions;
         saveDefinitions();
@@ -1105,12 +1103,15 @@
 
     function addHideTagButton(post, tag) {
         const tagText = tag.innerText.replaceAll("#", "");
-        if (tagDefinitions.includes(tagText)) {
-            post.classList.add("hidden");
-            return;
-        } else {
-            post.classList.remove("hidden");
-        }
+        let hiddenTag = false;
+        tagText.split(",").forEach(text => {
+            if (tagDefinitions.includes(text)) {
+                hiddenTag = true;
+            }
+        });
+
+        post.classList.toggle("hidden", hiddenTag);
+
         if (post.classList.contains("tagged")) { return; }
         post.classList.add("tagged");
         const button = createButton(tag.parentElement, "add to hidden tags", [], () => {
