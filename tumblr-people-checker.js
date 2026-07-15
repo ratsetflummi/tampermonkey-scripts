@@ -1115,7 +1115,9 @@
         if (post.classList.contains("tagged")) { return; }
         post.classList.add("tagged");
         const button = createButton(tag.parentElement, "add to hidden tags", [], () => {
-            tagDefinitions.push(tagText);
+            tagText.split(",").forEach(text => {
+                tagDefinitions.push(text);
+            });
             saveAndGo();
         });
         button.style.marginTop = "20px";
