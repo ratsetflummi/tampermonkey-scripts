@@ -299,6 +299,9 @@
                 }, timeout);
             });
             button.classList.add("linked");
+            if (button.href?.includes("stuff_for_you")) {
+                button.classList.add("hidden");
+            }
         });
         addOpenSettingsButton();
     }
