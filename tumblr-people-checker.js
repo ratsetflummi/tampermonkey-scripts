@@ -280,10 +280,17 @@
 
         setButtons();
 
+        hideCommunityButton();
+
         checkBlogs();
 
         resizeText();
 
+    }
+
+    function hideCommunityButton() {
+        if (!formattingDefinitions.hideCommunityPosts) { return; }
+        document.querySelector("[title='Communities']").classList.add("hidden");
     }
 
     function setButtons() {
@@ -954,7 +961,8 @@
     }
 
     function addOpenSettingsButton() {
-        const settingsList = document.querySelector(".gM9qK");
+        const settingsList = document.querySelector("[role='banner']")?.querySelector("ul");
+        console.log(settingsList);
         if (!settingsList || settingsList?.classList.contains("addedCheckerSettings")) return;
         settingsList?.classList.add("addedCheckerSettings");
         const entry = document.createElement("li");
