@@ -202,6 +202,10 @@
     `;
     document.head.appendChild(style);
 
+    document.addEventListener("scroll", () => {
+        go();
+    });
+
     setTimeout(() => {
         go();
     }, viewPostTimeout);
