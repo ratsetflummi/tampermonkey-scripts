@@ -294,7 +294,7 @@
 
     function hideCommunityButton() {
         if (!formattingDefinitions.hideCommunityPosts) { return; }
-        document.querySelector("[title='Communities']").classList.add("hidden");
+        document.querySelector("[title='Communities']")?.classList.add("hidden");
     }
 
     function setButtons() {
@@ -966,7 +966,6 @@
 
     function addOpenSettingsButton() {
         const settingsList = document.querySelector("[role='banner']")?.querySelector("ul");
-        console.log(settingsList);
         if (!settingsList || settingsList?.classList.contains("addedCheckerSettings")) return;
         settingsList?.classList.add("addedCheckerSettings");
         const entry = document.createElement("li");
