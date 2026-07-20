@@ -44,7 +44,7 @@
         if (!tagDefinitions) {
             addDefaultTagDefinitions();
         }
-        if(!seenPosts){
+        if (!seenPosts) {
             addDefaultSeenPosts();
         }
 
@@ -124,7 +124,7 @@
         saveDefinitions();
     }
 
-    function addDefaultSeenPosts(){
+    function addDefaultSeenPosts() {
         seenPosts = [];
         saveDefinitions();
     }
@@ -215,7 +215,7 @@
     `;
     document.head.appendChild(style);
 
-    document.addEventListener("scroll",()=>{
+    document.addEventListener("scroll", () => {
         go();
     });
 
@@ -305,8 +305,8 @@
 
     }
 
-    function hideCommunityButton(){
-        if (!formattingDefinitions.hideCommunityPosts) {return;}
+    function hideCommunityButton() {
+        if (!formattingDefinitions.hideCommunityPosts) { return; }
         document.querySelector("[title='Communities']")?.classList.add("hidden");
     }
 
@@ -324,7 +324,7 @@
                 }, timeout);
             });
             button.classList.add("linked");
-            if(button.href?.includes("stuff_for_you")){
+            if (button.href?.includes("stuff_for_you")) {
                 button.classList.add("hidden");
             }
         });
@@ -377,19 +377,19 @@
             }
 
             const postLink = header.querySelector("a");
-            if(window.location.href.includes("stuff_for_you")){
+            if (window.location.href.includes("stuff_for_you")) {
                 let followButton = null;
-                header.querySelectorAll("span").forEach(button=>{
-                    if(button.innerText === "Follow"){
+                header.querySelectorAll("span").forEach(button => {
+                    if (button.innerText === "Follow") {
                         followButton = button;
                     }
                 });
-                if(!followButton) {
+                if (!followButton) {
                     post.classList.add("hidden");
                 } else {
-                    if(!followButton.classList.contains("seen")){
+                    if (!followButton.classList.contains("seen")) {
                         followButton.classList.add("seen");
-                        const seenButton = createButton(followButton.parentElement.parentElement,"seen", [], () => {
+                        const seenButton = createButton(followButton.parentElement.parentElement, "seen", [], () => {
                             seenPosts.push(postLink.href);
                             saveDefinitions();
                         });
@@ -397,7 +397,7 @@
                         seenButton.classList.add("seenButton");
                     }
                 }
-                if(formattingDefinitions.hideSeenPosts && seenPosts.includes(postLink.href)){
+                if (formattingDefinitions.hideSeenPosts && seenPosts.includes(postLink.href)) {
                     post.classList.add("hidden");
                 }
             }
@@ -1005,7 +1005,8 @@
     }
 
     function addOpenSettingsButton() {
-        const settingsList = document.querySelector("[role='banner']")?.querySelector("ul");
+        const settingsList = document.querySelector("[role='banner']")?.querySelector("ul") || document.querySelector("ul");
+        console.log(settingsList);
         if (!settingsList || settingsList?.classList.contains("addedCheckerSettings")) return;
         settingsList?.classList.add("addedCheckerSettings");
         const entry = document.createElement("li");
