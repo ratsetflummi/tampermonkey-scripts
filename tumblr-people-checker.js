@@ -27,12 +27,14 @@
     let blogDefinitions;
     let formattingDefinitions;
     let tagDefinitions;
+    let seenPosts;
     try {
         definitions = JSON.parse(getCookie("peopleCheckerData"));
 
         blogDefinitions = definitions["blogDefinitions"];
         tagDefinitions = definitions["tagDefinitions"];
         formattingDefinitions = definitions["formattingDefinitions"];
+        seenPosts = definitions["seenPosts"];
         if (!blogDefinitions) {
             addDefaultBlogDefinitions();
         }
@@ -42,6 +44,10 @@
         if (!tagDefinitions) {
             addDefaultTagDefinitions();
         }
+        if(!seenPosts){
+            addDefaultSeenPosts();
+        }
+
     }
     catch {
         addDefaultBlogDefinitions();
@@ -53,6 +59,7 @@
     function addDefaultFormattingDefinitions() {
         formattingDefinitions = {
             "hideCommunityPosts": true,
+            "hideSeenPosts": true,
             "commentBackground": "#292929",
             "commentColor": "#ffffff",
             "tagColor": "#efefef",
@@ -114,13 +121,16 @@
                 ]
             },
         }
-        definitions.blogDefinitions = blogDefinitions;
+        saveDefinitions();
+    }
+
+    function addDefaultSeenPosts(){
+        seenPosts = [];
         saveDefinitions();
     }
 
     function addDefaultTagDefinitions() {
         tagDefinitions = [];
-        definitions.tagDefinitions = tagDefinitions;
         saveDefinitions();
     }
 
@@ -199,10 +209,13 @@
         .hidden, #modal.hidden {
             display: none;
         }
+        .seenButton {
+        padding: 20px;
+        }
     `;
     document.head.appendChild(style);
 
-    document.addEventListener("scroll", () => {
+    document.addEventListener("scroll",()=>{
         go();
     });
 
@@ -292,12 +305,13 @@
 
     }
 
-    function hideCommunityButton() {
-        if (!formattingDefinitions.hideCommunityPosts) { return; }
+    function hideCommunityButton(){
+        if (!formattingDefinitions.hideCommunityPosts) {return;}
         document.querySelector("[title='Communities']")?.classList.add("hidden");
     }
 
     function setButtons() {
+        addOpenSettingsButton();
         getButtons().forEach(button => {
             if (button.classList.contains("linked")) return;
             button.addEventListener("click", () => {
@@ -310,11 +324,10 @@
                 }, timeout);
             });
             button.classList.add("linked");
-            if (button.href?.includes("stuff_for_you")) {
+            if(button.href?.includes("stuff_for_you")){
                 button.classList.add("hidden");
             }
         });
-        addOpenSettingsButton();
     }
 
     function getButtons() {
@@ -362,6 +375,33 @@
                 post.classList.add("hidden");
                 return;
             }
+
+            const postLink = header.querySelector("a");
+            if(window.location.href.includes("stuff_for_you")){
+                let followButton = null;
+                header.querySelectorAll("span").forEach(button=>{
+                    if(button.innerText === "Follow"){
+                        followButton = button;
+                    }
+                });
+                if(!followButton) {
+                    post.classList.add("hidden");
+                } else {
+                    if(!followButton.classList.contains("seen")){
+                        followButton.classList.add("seen");
+                        const seenButton = createButton(followButton.parentElement.parentElement,"seen", [], () => {
+                            seenPosts.push(postLink.href);
+                            saveDefinitions();
+                        });
+                        followButton.parentElement.after(seenButton);
+                        seenButton.classList.add("seenButton");
+                    }
+                }
+                if(formattingDefinitions.hideSeenPosts && seenPosts.includes(postLink.href)){
+                    post.classList.add("hidden");
+                }
+            }
+
             header.style.border = `${formattingDefinitions.borderStyle} ${formattingDefinitions.borderColor} ${formattingDefinitions.borderWidth}px`;
             header.style.borderRadius = `${formattingDefinitions.cornerRounding}px`;
             header.style.marginBottom = `${formattingDefinitions.spaceBelowComments}px`;
@@ -372,7 +412,6 @@
                 addHideTagButton(post, tag);
             }
 
-            const postLink = header.querySelector("a");
             const postBlogName = postLink.href.split("tumblr.com/")[1].split("/")[0];
             let headerBlogName;
             if (header.children[1].children[0].children[0].role) {
@@ -946,6 +985,7 @@
                     formattingDefinitions = newDefinitions.formattingDefinitions;
                     blogDefinitions = newDefinitions.blogDefinitions;
                     tagDefinitions = newDefinitions.tagDefinitions;
+                    seenPosts = newDefinitions.seenPosts;
                     addBaseDefinitions();
                     saveAndGo();
                     closeModal();
@@ -1171,6 +1211,7 @@
         definitions.formattingDefinitions = formattingDefinitions;
         definitions.blogDefinitions = blogDefinitions;
         definitions.tagDefinitions = tagDefinitions;
+        definitions.seenPosts = seenPosts;
         setCookie("peopleCheckerData", JSON.stringify(definitions));
     }
 
