@@ -350,6 +350,12 @@
                 addOpenSettingsButton();
             }
             if (formattingDefinitions.hideCommunityPosts) {
+                document.querySelectorAll(".rZlUD.KYCZY.W45iW").forEach(entry => {
+                    const isPost = entry.querySelector("article");
+                    if (!isPost) {
+                        entry.firstChild.classList.add("hidden");
+                    }
+                });
                 const dash = document.querySelector("[data-timeline-id]")?.querySelector("div");
                 if (dash?.children) {
                     Array.from(dash.children).forEach(entry => {
@@ -1006,7 +1012,6 @@
 
     function addOpenSettingsButton() {
         const settingsList = document.querySelector("[role='banner']")?.querySelector("ul") || document.querySelector("ul");
-        console.log(settingsList);
         if (!settingsList || settingsList?.classList.contains("addedCheckerSettings")) return;
         settingsList?.classList.add("addedCheckerSettings");
         const entry = document.createElement("li");
@@ -1164,7 +1169,6 @@
                 hiddenTag = true;
             }
         });
-
         post.classList.toggle("hidden", hiddenTag);
 
         if (post.classList.contains("tagged")) { return; }
