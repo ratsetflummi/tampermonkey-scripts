@@ -39,6 +39,20 @@
         //     width: 100vw;
         //     margin-bottom: 0 !important;
         }
+        .remove-button {
+            width: 40px;
+            margin-left: 10px;
+            background-color: #051226;
+            color: white;
+        }
+        li {
+            margin-bottom: 20px;
+            margin-top: 20px;
+        }
+        .tag-list-inc, .tag-list-exl{
+            margin-right: 10px;
+            margin-left: 10px;
+        }
     `;
     document.head.appendChild(style);
 
@@ -63,6 +77,19 @@
             const navigation = document.querySelector(".navigation");
             navigation.style.marginTop = "30vh";
             const blacklistUi = document.querySelector(".blacklist-ui");
+            blacklistUi.querySelectorAll("li").forEach(item => {
+                const num = item.querySelector("a").querySelector("span");
+                num.remove();
+                const text = item.querySelector("a").innerText;
+                item.appendChild(num);
+                const button = document.createElement("button");
+                button.innerText = " - ";
+                item.appendChild(button);
+                button.addEventListener("click", () => {
+                    window.location.href = window.location.href + "+-" + text;
+                });
+                button.classList.add("remove-button");
+            })
             const posts = document.querySelector("#posts");
             posts?.prepend(blacklistUi);
             imageAndNav?.prepend(blacklistUi);
