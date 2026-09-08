@@ -17,24 +17,15 @@
     const followingTimeout = 10000;
     const reloadTimeout = 4000;
     const elementsToResize = ['a', 'p', 'li', 'span', 'time', 'blockquote']
-    // everything below here is code. changing stuff in here might make the extension not work anymore
-    // i can't stop you from poking around though
-    // have fun and be yourself
-    // and if it does break, just download a fresh version
-
 
     let definitions = {};
     let blogDefinitions;
     let formattingDefinitions;
     let tagDefinitions;
-    let seenPosts;
     try {
-        definitions = JSON.parse(getCookie("peopleCheckerData"));
-
-        blogDefinitions = definitions["blogDefinitions"];
-        tagDefinitions = definitions["tagDefinitions"];
-        formattingDefinitions = definitions["formattingDefinitions"];
-        seenPosts = definitions["seenPosts"];
+        blogDefinitions = JSON.parse(getCookie("peopleCheckerData_blogDefinitions"));
+        tagDefinitions = JSON.parse(getCookie("peopleCheckerData_tagDefinitions"));
+        formattingDefinitions = JSON.parse(getCookie("peopleCheckerData_formattingDefinitions"));
         if (!blogDefinitions) {
             addDefaultBlogDefinitions();
         }
@@ -43,9 +34,6 @@
         }
         if (!tagDefinitions) {
             addDefaultTagDefinitions();
-        }
-        if (!seenPosts) {
-            addDefaultSeenPosts();
         }
 
     }
@@ -59,7 +47,7 @@
     function addDefaultFormattingDefinitions() {
         formattingDefinitions = {
             "hideCommunityPosts": true,
-            "hideSeenPosts": true,
+            "homeButtonImageUrl": "https://upload.wikimedia.org/wikipedia/en/0/04/Kuromi_render.png",
             "commentBackground": "#292929",
             "commentColor": "#ffffff",
             "tagColor": "#efefef",
@@ -123,12 +111,6 @@
         }
         saveDefinitions();
     }
-
-    function addDefaultSeenPosts() {
-        seenPosts = [];
-        saveDefinitions();
-    }
-
     function addDefaultTagDefinitions() {
         tagDefinitions = [];
         saveDefinitions();
@@ -294,7 +276,7 @@
     })
 
     function go() {
-
+        saveDefinitions();
         setButtons();
 
         hideCommunityButton();
@@ -312,6 +294,20 @@
 
     function setButtons() {
         addOpenSettingsButton();
+        let home_button = document.querySelector('[aria-label="Home"]');
+        if (!home_button.parentElement.classList.contains("linked") && formattingDefinitions.homeButtonImageUrl) {
+            home_button.parentElement.classList.add("linked");
+            const replacementButton = document.createElement("img");
+            replacementButton.setAttribute('aria-label', 'Home');
+            replacementButton.src = formattingDefinitions.homeButtonImageUrl;
+            home_button.parentElement.appendChild(replacementButton);
+            replacementButton.style.height = "100px";
+            replacementButton.style.cursor = "pointer";
+            home_button.remove();
+            replacementButton.addEventListener("click", () => {
+                window.location.reload();
+            });
+        }
         getButtons().forEach(button => {
             if (button.classList.contains("linked")) return;
             button.addEventListener("click", () => {
@@ -391,19 +387,6 @@
                     }
                 });
                 if (!followButton) {
-                    post.classList.add("hidden");
-                } else {
-                    if (!followButton.classList.contains("seen")) {
-                        followButton.classList.add("seen");
-                        const seenButton = createButton(followButton.parentElement.parentElement, "seen", [], () => {
-                            seenPosts.push(postLink.href);
-                            saveDefinitions();
-                        });
-                        followButton.parentElement.after(seenButton);
-                        seenButton.classList.add("seenButton");
-                    }
-                }
-                if (formattingDefinitions.hideSeenPosts && seenPosts.includes(postLink.href)) {
                     post.classList.add("hidden");
                 }
             }
@@ -725,6 +708,7 @@
         const modal = openModal();
         const table = document.createElement("table");
         modal.appendChild(table);
+
         Object.entries(formattingDefinitions).forEach(([type, value]) => {
             const row = document.createElement("tr");
             const th = document.createElement("th");
@@ -991,7 +975,6 @@
                     formattingDefinitions = newDefinitions.formattingDefinitions;
                     blogDefinitions = newDefinitions.blogDefinitions;
                     tagDefinitions = newDefinitions.tagDefinitions;
-                    seenPosts = newDefinitions.seenPosts;
                     addBaseDefinitions();
                     saveAndGo();
                     closeModal();
@@ -1216,8 +1199,9 @@
         definitions.formattingDefinitions = formattingDefinitions;
         definitions.blogDefinitions = blogDefinitions;
         definitions.tagDefinitions = tagDefinitions;
-        definitions.seenPosts = seenPosts;
-        setCookie("peopleCheckerData", JSON.stringify(definitions));
+        setCookie("peopleCheckerData_formattingDefinitions", JSON.stringify(definitions.formattingDefinitions));
+        setCookie("peopleCheckerData_blogDefinitions", JSON.stringify(definitions.blogDefinitions));
+        setCookie("peopleCheckerData_tagDefinitions", JSON.stringify(definitions.tagDefinitions));
     }
 
     function saveAndGo() {
