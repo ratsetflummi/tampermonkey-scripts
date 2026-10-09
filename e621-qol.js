@@ -19,6 +19,7 @@
     const borderWidth = 1;
     const cornerRounding = 5;
     const timeout = 200;
+    const autoSeconds = 10;
 
     go();
 
@@ -73,9 +74,49 @@
                 imageAndNav.appendChild(topLinks);
                 const sequenceLinks = topLinks.querySelector(".search-seq-nav");
                 topLinks.appendChild(sequenceLinks);
+
+                const autoAdvance = document.createElement("div");
+                topLinks.appendChild(autoAdvance);
+                const autoPrev = document.createElement("button");
+                autoPrev.innerText = "auto prev";
+                autoAdvance.appendChild(autoPrev);
+                autoPrev.classList.add("nav-link");
+                autoPrev.classList.add("prev");
+                const autoNext = document.createElement("button");
+                autoNext.innerText = "auto next";
+                autoAdvance.appendChild(autoNext);
+                autoNext.classList.add("nav-link");
+                autoNext.classList.add("next");
+
+                autoAdvance.style.display = "flex";
+                autoAdvance.style.justifyContent = "space-between";
+
+                autoPrev.addEventListener("click", () => {
+                    setCookie("autoNext", "false");
+                    setCookie("autoPrev", "true");
+                    sequenceLinks.querySelector(".prev").click();
+                });
+                autoNext.addEventListener("click", () => {
+                    setCookie("autoNext", "true");
+                    setCookie("autoPrev", "false");
+                    sequenceLinks.querySelector(".next").click();
+                });
+
+                if (getCookie("autoPrev") === "true") {
+                    setTimeout(() => {
+                        sequenceLinks.querySelector(".prev").click();
+                    }, autoSeconds * 1000);
+                } else if (getCookie("autoNext") === "true") {
+                    setTimeout(() => {
+                        sequenceLinks.querySelector(".next").click();
+                    }, autoSeconds * 1000);
+                }
+            } else {
+                setCookie("autoPrev", "false");
+                setCookie("autoNext", "false");
             }
             const navigation = document.querySelector(".navigation");
-            navigation.style.marginTop = "30vh";
+            navigation.style.marginTop = "10vh";
             const blacklistUi = document.querySelector(".blacklist-ui");
             blacklistUi.querySelectorAll("li").forEach(item => {
                 const num = item.querySelector("a").querySelector("span");
@@ -95,5 +136,33 @@
             imageAndNav?.prepend(blacklistUi);
         }, timeout);
     }
+    function setCookie(cname, cvalue) {
+        const d = new Date();
+        d.setTime(d.getTime() + (50 * 365 * 24 * 60 * 60 * 1000));
+        let expires = "expires=" + d.toUTCString();
+        document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+    }
 
+    function getCookie(cname) {
+        let name = cname + "=";
+        let decodedCookie = decodeURIComponent(document.cookie);
+        let ca = decodedCookie.split(';');
+        for (let i = 0; i < ca.length; i++) {
+            let c = ca[i];
+            while (c.charAt(0) == ' ') {
+                c = c.substring(1);
+            }
+            if (c.indexOf(name) == 0) {
+                return c.substring(name.length, c.length);
+            }
+        }
+        return "";
+    }
+
+    function deleteCookie(cname) {
+        const d = new Date();
+        d.setTime(d.getTime() + (50 * 365 * 24 * 60 * 60 * 1000));
+        let expires = "expires=" + d.toUTCString();
+        document.cookie = cname + "=delete;expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    }
 })();
