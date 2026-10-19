@@ -143,6 +143,7 @@
         document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
     }
 
+
     function getCookie(cname) {
         let name = cname + "=";
         let decodedCookie = decodeURIComponent(document.cookie);
