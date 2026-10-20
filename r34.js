@@ -18,6 +18,12 @@
         imageContainer.after(tagSidebar);
     }
 
+    const navlinksContainer = document.querySelector("#navlinksContainer");
+    if (imageContainer) {
+        imageContainer.after(navlinksContainer);
+        navlinksContainer.style.position = "relative";
+    }
+
     document.querySelectorAll(".tag-type-general").forEach(tag => {
         tag.style.display = "block";
         tag.querySelectorAll("a").forEach(link => {
@@ -47,7 +53,6 @@
     }
 
     function addToSearch(term) {
-        const searchBar = document.querySelector("input[name='tags']");
         const tags = window.location.href.split("&tags=")[1] || "";
         window.location.href = "https://rule34.xxx/index.php?page=post&s=list&tags=" + tags + "+" + term;
     }
